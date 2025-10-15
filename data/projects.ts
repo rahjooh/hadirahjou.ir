@@ -22,7 +22,7 @@ export const projects: Project[] = [
     ],
     impact: 'Reduced analytics lead time by 64% and enabled finance to self-serve KPI refreshes in minutes.',
     period: '2023 — Present',
-    repository: 'https://github.com/hadirahjou/pulselake'
+    repository: 'https://github.com/rahjooh/pulselake'
   },
   {
     title: 'AtlasOps — Incident Intelligence Hub',
@@ -36,7 +36,7 @@ export const projects: Project[] = [
     ],
     impact: 'Cut incident triage time by 45% with predictive staffing alerts adopted by SRE leadership.',
     period: '2021 — 2023',
-    repository: 'https://github.com/hadirahjou/atlasops',
+    repository: 'https://github.com/rahjooh/atlasops',
     live: 'https://atlasops.hadirahjou.ir'
   },
   {
@@ -51,7 +51,7 @@ export const projects: Project[] = [
     ],
     impact: 'Enabled 200+ teams to bootstrap governed analytics environments in under a day.',
     period: '2019 — Present',
-    repository: 'https://github.com/hadirahjou/dataops-starter-kits'
+    repository: 'https://github.com/rahjooh/dataops-starter-kits'
   },
   {
     title: 'MSK Serverless Crypto Data Platform',

@@ -24,7 +24,7 @@ const structuredData = {
   jobTitle: 'Lead Data Engineer',
   url: 'https://hadirahjou.ir',
   email: 'mailto:hadi@hadirahjou.ir',
-  sameAs: ['https://github.com/hadirahjou', 'https://www.linkedin.com/in/hadi-rahjou'],
+  sameAs: ['https://github.com/rahjooh', 'https://www.linkedin.com/in/hadi-rahjou'],
   description: summary,
   knowsAbout: [...new Set(skills.flat())]
 };

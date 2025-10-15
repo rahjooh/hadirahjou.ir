@@ -24,7 +24,7 @@ export default async function ProjectsPage() {
           title="Projects"
           eyebrow="Product-led data engineering"
           description="Selected engagements blending modern data engineering, operational analytics, and enablement. Each project links to the GitHub repository for deeper context."
-          action={{ href: 'https://github.com/hadirahjou', label: 'GitHub profile', external: true }}
+          action={{ href: 'https://github.com/rahjooh', label: 'GitHub profile', external: true }}
         />
         <div className="card-grid">
           {projects.map((project) => {
