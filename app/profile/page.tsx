@@ -21,10 +21,17 @@ const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: 'Hadi Rahjou',
+<<<<<<< codex/build-advanced-personal-site-with-next.js-9oegoe
+  jobTitle: 'Principal Data Engineer & Consultant',
+  url: 'https://hadirahjou.ir',
+  email: 'mailto:hadi@hadirahjou.ir',
+  sameAs: ['https://github.com/rahjooh', 'https://www.linkedin.com/in/hadirahjou'],
+=======
   jobTitle: 'Lead Data Engineer',
   url: 'https://hadirahjou.ir',
   email: 'mailto:hadi@hadirahjou.ir',
   sameAs: ['https://github.com/rahjooh', 'https://www.linkedin.com/in/hadi-rahjou'],
+>>>>>>> main
   description: summary,
   knowsAbout: [...new Set(skills.flat())]
 };
@@ -37,9 +44,15 @@ export default function ProfilePage() {
       <Section id="cv">
         <PageHeader
           title="Profile & CV"
+<<<<<<< codex/build-advanced-personal-site-with-next.js-9oegoe
+          eyebrow="Data platforms for exchanges, marketplaces, and growth teams"
+          description="I pair streaming-first architecture with pragmatic product instincts so stakeholders always have trustworthy, real-time insight."
+          action={{ href: 'mailto:hadi@hadirahjou.ir', label: 'Request project portfolio' }}
+=======
           eyebrow="Trusted by analytics-driven organisations"
           description="A strategist-engineer hybrid guiding data platform transformations from discovery to measurable business impact."
           action={{ href: 'mailto:hadi@hadirahjou.ir', label: 'Request full CV' }}
+>>>>>>> main
         />
         <div className="card" style={{ padding: '2.25rem' }}>
           <h2>About</h2>
@@ -59,8 +72,13 @@ export default function ProfilePage() {
         <div className="page-header" style={{ marginBottom: '2rem' }}>
           <div className="page-header__content">
             <span className="eyebrow">Experience</span>
+<<<<<<< codex/build-advanced-personal-site-with-next.js-9oegoe
+            <h2>Delivering resilient data platforms</h2>
+            <p>Engagements spanning crypto, e-commerce, and super-app ecosystems with a focus on dependable, observable delivery.</p>
+=======
             <h2>Leading high-performing data teams</h2>
             <p>From lakehouse architecture to analytics enablement, I build programmes that scale with clarity and quality.</p>
+>>>>>>> main
           </div>
         </div>
         <div className="timeline">
@@ -80,8 +98,13 @@ export default function ProfilePage() {
         <div className="page-header" style={{ marginBottom: '2rem' }}>
           <div className="page-header__content">
             <span className="eyebrow">Operating Principles</span>
+<<<<<<< codex/build-advanced-personal-site-with-next.js-9oegoe
+            <h2>How I show up as a partner</h2>
+            <p>Practices that keep pipelines observable, roadmaps transparent, and teams shipping confidently.</p>
+=======
             <h2>How I amplify teams</h2>
             <p>Frameworks and rituals I bring to every engagement to keep delivery crisp, inclusive, and measurable.</p>
+>>>>>>> main
           </div>
         </div>
         <div className="card-grid">
@@ -98,8 +121,13 @@ export default function ProfilePage() {
         <div className="page-header" style={{ marginBottom: '2rem' }}>
           <div className="page-header__content">
             <span className="eyebrow">Skills Matrix</span>
+<<<<<<< codex/build-advanced-personal-site-with-next.js-9oegoe
+            <h2>From stream ingestion to activation</h2>
+            <p>Hands-on with languages, platforms, and governance tooling that keep data products fast and reliable.</p>
+=======
             <h2>Balanced across engineering, governance, and enablement</h2>
             <p>Tooling fluency coupled with product sense and the communication chops to land outcomes.</p>
+>>>>>>> main
           </div>
         </div>
         <div className="list-grid">
@@ -140,7 +168,11 @@ export default function ProfilePage() {
         <div className="card" style={{ padding: '2rem' }}>
           <span className="eyebrow">Outside the terminal</span>
           <p>
+<<<<<<< codex/build-advanced-personal-site-with-next.js-9oegoe
+            Outside of shipping data products you can find me documenting crypto market structure, coaching emerging engineers, and chasing Tehran&rsquo;s cycling climbs.
+=======
             I recharge by exploring the outdoors, mentoring early-career engineers, and experimenting with analog photography.
+>>>>>>> main
           </p>
           <TagList tags={interests} />
           <Link href="/blog" className="button button--ghost" style={{ width: 'fit-content', marginTop: '1.5rem' }}>

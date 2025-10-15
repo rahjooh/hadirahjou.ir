@@ -1,85 +1,79 @@
-export const summary = `Data engineer obsessed with dependable analytics pipelines, modular data platforms, and
-meaningful storytelling. I translate business needs into scalable data products across
-cloud-native stacks, leading cross-functional teams with an emphasis on craftsmanship and
-clear communication.`;
+export const summary = `Principal data engineer specialising in low-latency ingestion, modern data platform design, and
+cloud infrastructure automation. I translate trading, growth, and operations requirements into
+resilient analytics ecosystems that keep teams shipping fast without sacrificing trust.`;
 
 export const experience = [
   {
-    role: 'Lead Data Engineer',
-    company: 'Vertex Analytics',
-    period: '2022 — Present',
+    role: 'Principal Data Engineer & Consultant',
+    company: 'Rahjou Analytics',
+    period: '2023 — Present',
     description:
-      'Architected a modern data platform on top of a lakehouse stack, delivered self-service analytics capabilities, and mentored a team of seven engineers.'
+      'Partner with crypto exchanges and fintech teams to build production-grade streaming and batch platforms. Delivered the CryptoFlow ingestion service, MSK Serverless infrastructure-as-code stack, and observability suites that power real-time market intelligence.'
   },
   {
-    role: 'Senior Analytics Engineer',
-    company: 'Northwind Labs',
-    period: '2019 — 2022',
+    role: 'Senior Data Engineer',
+    company: 'Snapp',
+    period: '2019 — 2023',
     description:
-      'Designed modular dbt projects, automated CI pipelines for data quality, and built governance frameworks adopted across the organization.'
+      'Led marketplace data platform initiatives for Iran’s largest super-app. Modernised Kafka and lakehouse pipelines, launched dbt-driven analytics marts, and operationalised data contracts serving supply, growth, and finance stakeholders.'
   },
   {
     role: 'Data Engineer',
-    company: 'Synapse Works',
+    company: 'Digikala',
     period: '2016 — 2019',
     description:
-      'Implemented streaming ingestion with Kafka and Spark, reducing data latency from hours to minutes for critical operational dashboards.'
+      'Built scalable ELT workflows for e-commerce merchandising, marketing attribution, and user personalisation. Introduced real-time clickstream ingestion and improved campaign reporting latency from hours to minutes.'
   }
 ];
 
 export const education = [
   {
-    degree: 'MSc, Data Science',
-    institution: 'Sharif University of Technology',
-    year: '2016'
-  },
-  {
     degree: 'BSc, Computer Engineering',
-    institution: 'University of Tehran',
-    year: '2014'
+    institution: 'Amirkabir University of Technology',
+    year: '2015'
   }
 ];
 
 export const skills = [
-  ['Python', 'TypeScript', 'SQL', 'Scala'],
+  ['Go', 'Python', 'TypeScript', 'SQL'],
+  ['Apache Kafka', 'Amazon MSK Serverless', 'AWS (S3, ECS, Lambda)', 'Terraform'],
   ['dbt', 'Dagster', 'Airflow', 'Great Expectations'],
-  ['Snowflake', 'BigQuery', 'Spark', 'Delta Lake'],
-  ['Data Modeling', 'MLOps', 'DataOps', 'Data Governance']
+  ['Data Modeling', 'Observability', 'Streaming Architectures', 'Platform Leadership']
 ];
 
 export const certifications = [
+  'AWS Certified Data Analytics – Specialty',
   'Google Cloud Professional Data Engineer',
-  'dbt Analytics Engineering Certified',
-  'Databricks Lakehouse Fundamentals'
+  'dbt Analytics Engineering Certified'
 ];
 
 export const interests = [
-  'Building minimal digital products',
-  'Long-form technical writing',
-  'Mentoring aspiring data engineers',
-  'Trail running & analog photography'
+  'Crypto market microstructure research',
+  'Technical writing & speaking',
+  'Mentoring emerging data teams',
+  'Cycling across Tehran'
 ];
 
 export const stats = [
-  { label: 'Platform roadmaps delivered', value: '18' },
-  { label: 'Engineers coached into leads', value: '11' },
-  { label: 'Data quality incidents prevented in 2023', value: '120+' }
+  { label: 'Streaming services launched', value: '25+' },
+  { label: 'dbt models under active governance', value: '380+' },
+  { label: 'Production incidents resolved in 2023', value: '95%' }
 ];
 
 export const operatingPrinciples = [
   {
-    title: 'Lead with clarity',
+    title: 'Ship reliability, not just features',
     description:
-      'Every initiative starts with a crisp narrative that aligns stakeholders, quantifies value, and surfaces risk early.'
+      'Bake automated testing, lineage, and SLOs into every pipeline so the business can trust the metrics it runs on.'
   },
   {
-    title: 'Automate trust',
+    title: 'Own the product narrative',
     description:
-      'Reliability is a feature. I embed observability, testing, and feedback loops so teams ship with confidence.'
+      'Frame engineering initiatives with clear business outcomes, measurable hypotheses, and tight stakeholder loops.'
   },
   {
-    title: 'Elevate teams',
+    title: 'Scale teams with systems',
     description:
-      'Scaling impact means coaching engineers, pairing on design decisions, and creating communities of practice.'
+      'Invest in playbooks, tooling, and mentorship that raise the floor for the entire analytics organisation.'
   }
 ];
