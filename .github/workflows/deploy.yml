@@ -7,9 +7,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  ssh-test:
+    name: Verify SSH connectivity
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          script: |
+            echo "SSH connection successful"
+
   deploy:
     name: Deploy to hadirahjou.ir
     runs-on: ubuntu-latest
+    needs: ssh-test
 
     steps:
       - name: Checkout repository
