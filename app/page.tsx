@@ -4,16 +4,32 @@ import Section from '@/components/Section';
 import TagList from '@/components/TagList';
 import { projects } from '@/data/projects';
 import { blogPosts } from '@/data/blogPosts';
+import { getPortfolioSummary, getRepositoryMetrics, repositorySlugFromUrl } from '@/lib/github';
 
-const stats = [
-  { label: 'Years shaping data platforms', value: '10+' },
-  { label: 'Teams mentored to production', value: '14' },
-  { label: 'Articles & talks published', value: '36' }
-];
-
-export default function HomePage() {
+export default async function HomePage() {
   const featuredProjects = projects.slice(0, 2);
   const featuredPosts = blogPosts.slice(0, 2);
+  const repoSlugs = featuredProjects
+    .map((project) => repositorySlugFromUrl(project.repository))
+    .filter((repo): repo is string => Boolean(repo));
+
+  const [portfolioSummary, repoMetrics] = await Promise.all([
+    getPortfolioSummary(
+      projects
+        .map((project) => repositorySlugFromUrl(project.repository))
+        .filter((repo): repo is string => Boolean(repo))
+    ),
+    getRepositoryMetrics(repoSlugs)
+  ]);
+
+  const metricsLookup = new Map(repoMetrics.map((metric) => [metric.repo, metric]));
+  const stats = [
+    { label: 'Years shaping data platforms', value: '10+' },
+    { label: 'Teams mentored to production', value: '14' },
+    { label: 'Articles & talks published', value: '36' },
+    { label: 'GitHub stars across flagship repos', value: portfolioSummary.totalStars.toLocaleString() },
+    { label: 'Forks supporting community adoption', value: portfolioSummary.totalForks.toLocaleString() }
+  ];
 
   return (
     <div>
@@ -67,23 +83,34 @@ export default function HomePage() {
           action={{ href: '/projects', label: 'View all projects' }}
         />
         <div className="card-grid">
-          {featuredProjects.map((project) => (
-            <article key={project.title} className="card">
-              <h3>{project.title}</h3>
-              <p>{project.description}</p>
-              <TagList tags={project.stack} />
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <Link href={project.repository} target="_blank" rel="noreferrer">
-                  Repository ↗
-                </Link>
-                {project.live ? (
-                  <Link href={project.live} target="_blank" rel="noreferrer">
-                    Live Demo ↗
-                  </Link>
+          {featuredProjects.map((project) => {
+            const repo = repositorySlugFromUrl(project.repository);
+            const metrics = repo ? metricsLookup.get(repo) : undefined;
+
+            return (
+              <article key={project.title} className="card">
+                <h3>{project.title}</h3>
+                <p>{project.description}</p>
+                <TagList tags={project.stack} />
+                {metrics ? (
+                  <div className="repo-metrics" aria-label="Repository metrics">
+                    <span>{metrics.stars.toLocaleString()} ⭐ Stars</span>
+                    <span>{metrics.forks.toLocaleString()} 🍴 Forks</span>
+                  </div>
                 ) : null}
-              </div>
-            </article>
-          ))}
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <Link href={project.repository} target="_blank" rel="noreferrer">
+                    Repository ↗
+                  </Link>
+                  {project.live ? (
+                    <Link href={project.live} target="_blank" rel="noreferrer">
+                      Live Demo ↗
+                    </Link>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </Section>
 

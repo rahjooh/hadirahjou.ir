@@ -11,9 +11,9 @@ blog covering data engineering and analytics strategy.
 - **Profile & CV hub** highlighting experience, education, certifications, operating principles, and
   personal interests for quick scanning.
 - **Projects showcase** with technology stacks, value-focused highlights, delivery timelines, and
-  external links to GitHub repositories and live demos.
-- **Editorial blog** with metadata-aware article pages, static generation, and discovery-friendly
-  summary cards.
+  live GitHub metrics (stars, forks, watchers) pulled straight from the repositories.
+- **Editorial blog** with metadata-aware article pages, static generation, and an interactive
+  explorer for tag filtering and search across articles.
 - **Global navigation and metadata** to ensure consistent branding, structured data, and shareable
   previews.
 
