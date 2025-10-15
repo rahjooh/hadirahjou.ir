@@ -70,6 +70,11 @@ jobs:
               $SUDO apt-get install -y nodejs
             fi
 
+            if ! command -v setcap >/dev/null 2>&1; then
+              $SUDO apt-get update
+              $SUDO apt-get install -y libcap2-bin
+            fi
+
             if ! command -v pm2 >/dev/null 2>&1; then
               $SUDO npm install -g pm2
             fi
@@ -88,7 +93,14 @@ jobs:
             npm install
             npm run build
 
-            pm2 start npm --name "$APP_NAME" -- run start -- --hostname 0.0.0.0 --port 3000
+            if [ -n "$SUDO" ]; then
+              NODE_BIN="$(command -v node || true)"
+              if [ -n "$NODE_BIN" ]; then
+                $SUDO setcap 'cap_net_bind_service=+ep' "$NODE_BIN" || true
+              fi
+            fi
+
+            pm2 start npm --name "$APP_NAME" -- run start -- --hostname 0.0.0.0 --port 80
             if [ -n "$SUDO" ]; then
               $SUDO pm2 startup systemd -u "$(whoami)" --hp "$HOME" || true
             fi

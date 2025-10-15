@@ -7,13 +7,12 @@ const STORAGE_KEY = 'hadirahjou-theme';
 type Theme = 'light' | 'dark';
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
     const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const systemPreference: Theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const initial = stored ?? systemPreference;
+    const initial = stored ?? 'dark';
     setTheme(initial);
     document.documentElement.dataset.theme = initial;
   }, []);
