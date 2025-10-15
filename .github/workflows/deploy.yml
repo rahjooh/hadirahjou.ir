@@ -1,0 +1,107 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to hadirahjou.ir
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare deployment archive
+        run: |
+          rm -rf node_modules
+          tar czf deploy.tar.gz \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='deploy.tar.gz' \
+            .
+
+      - name: Upload archive to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          source: "deploy.tar.gz"
+          target: "~/deployments"
+
+      - name: Deploy on remote host
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          script: |
+            set -euo pipefail
+
+            ARCHIVE_DIR="$HOME/deployments"
+            ARCHIVE_NAME="deploy.tar.gz"
+            ARCHIVE_PATH="$ARCHIVE_DIR/$ARCHIVE_NAME"
+            APP_DIR="$HOME/apps/hadirahjou.ir"
+            APP_NAME="hadirahjou-ir"
+
+            mkdir -p "$ARCHIVE_DIR"
+
+            if command -v sudo >/dev/null 2>&1; then
+              SUDO="sudo"
+            else
+              SUDO=""
+            fi
+
+            if ! command -v curl >/dev/null 2>&1; then
+              $SUDO apt-get update
+              $SUDO apt-get install -y curl
+            fi
+
+            if ! command -v node >/dev/null 2>&1; then
+              $SUDO apt-get update
+              $SUDO apt-get install -y ca-certificates gnupg
+              curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO bash -
+              $SUDO apt-get install -y nodejs
+            fi
+
+            if ! command -v setcap >/dev/null 2>&1; then
+              $SUDO apt-get update
+              $SUDO apt-get install -y libcap2-bin
+            fi
+
+            if ! command -v pm2 >/dev/null 2>&1; then
+              $SUDO npm install -g pm2
+            fi
+
+            if command -v pm2 >/dev/null 2>&1; then
+              pm2 stop "$APP_NAME" || true
+              pm2 delete "$APP_NAME" || true
+            fi
+
+            rm -rf "$APP_DIR"
+            mkdir -p "$APP_DIR"
+            tar -xzf "$ARCHIVE_PATH" -C "$APP_DIR" --strip-components=1
+            rm -f "$ARCHIVE_PATH"
+
+            cd "$APP_DIR"
+            npm install
+            npm run build
+
+            if [ -n "$SUDO" ]; then
+              NODE_BIN="$(command -v node || true)"
+              if [ -n "$NODE_BIN" ]; then
+                $SUDO setcap 'cap_net_bind_service=+ep' "$NODE_BIN" || true
+              fi
+            fi
+
+            pm2 start npm --name "$APP_NAME" -- run start -- --hostname 0.0.0.0 --port 80
+            if [ -n "$SUDO" ]; then
+              $SUDO pm2 startup systemd -u "$(whoami)" --hp "$HOME" || true
+            fi
+            pm2 save
