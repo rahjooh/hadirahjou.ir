@@ -82,5 +82,50 @@ export const projects: Project[] = [
       'Delivers production-ready order book archives that feed quant analytics pipelines without losing depth or consistency during high-volatility bursts.',
     period: '2024',
     repository: 'https://github.com/rahjooh/CryptoTrade'
+  },
+  {
+    title: 'Data FTP Listener',
+    description:
+      'Python automation toolkit that watches bank-operated FTP endpoints, cleans inbound files, and routes normalized datasets into governed data stores.',
+    stack: ['Python', 'FTP', 'PostgreSQL', 'ETL'],
+    highlights: [
+      'Configurable ingestion flows covering extraction, validation, conversion, and delivery to databases or data lakes',
+      'Multi-project templating that let Ayandeh Bank reuse the same automation patterns across future big data initiatives',
+      'Operational logging and retention controls ensuring expired feeds are decommissioned without manual effort'
+    ],
+    impact:
+      'Automated Ayandeh Bank\'s FTP-to-datalake pipeline, eliminating manual file handling for big data programs before the platform sunset in 2019.',
+    period: '2017 — 2019',
+    repository: 'https://github.com/rahjooh/Automate_datareader'
+  },
+  {
+    title: 'Ayandeh Analytics App Server',
+    description:
+      'Lightweight web application that surfaced customer analytics outcomes for Ayandeh Bank with interactive portfolio dashboards and drill-down reports.',
+    stack: ['Python', 'Flask', 'PostgreSQL', 'Chart.js'],
+    highlights: [
+      'Backed customer-segmentation dashboards with REST endpoints sourced from the Automate_datareader ingestion flows',
+      'Role-based access controls and audit logs aligned with bank compliance requirements for sensitive customer insights',
+      'Deployed as a hardened Linux service with automated backups and configuration-as-code for quick reproducibility'
+    ],
+    impact:
+      'Gave branch analytics teams a real-time view into campaign performance and churn trends without relying on static reporting cycles.',
+    period: '2018 — 2019',
+    repository: 'https://github.com/rahjooh/AppServer_Ayandeh'
+  },
+  {
+    title: 'AnalyticServer — Customer Intelligence Fabric',
+    description:
+      'Enterprise-grade analytics backbone delivering PySpark-driven segmentation, feature engineering, and governed dashboards from Ayandeh Bank\'s Hadoop estate.',
+    stack: ['PySpark', 'Hadoop HDFS', 'Kafka', 'Airflow', 'Superset'],
+    highlights: [
+      'Clustering, correlation analysis, and feature segmentation pipelines orchestrated across Spark jobs for customer cohorts',
+      'Kafka connectors bridging operational systems with HDFS storage and downstream visualization layers',
+      'Automated report generation and dashboard publishing layers powering executive insights and campaign tracking'
+    ],
+    impact:
+      'Standardized big data analytics delivery for Ayandeh Bank by unifying ingestion, transformation, and visualization in a single platform.',
+    period: '2016 — 2019',
+    repository: 'https://github.com/rahjooh/AnalyticServer'
   }
 ];
