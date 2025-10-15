@@ -1,5 +1,7 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import TagList from '@/components/TagList';
 import { blogPosts } from '@/data/blogPosts';
 
 interface BlogPostPageProps {
@@ -41,17 +43,14 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <article className="article">
+      <Link href="/blog" className="button button--ghost" style={{ width: 'fit-content' }}>
+        ← Back to blog
+      </Link>
       <header>
+        <span className="eyebrow">{new Date(post.date).toLocaleDateString()}</span>
         <h1>{post.title}</h1>
-        <time dateTime={post.date}>{new Date(post.date).toLocaleDateString()}</time>
-        <span style={{ color: 'var(--text-secondary)' }}>{post.readingTime}</span>
-        <div className="tag-list" style={{ marginTop: '1rem' }}>
-          {post.tags.map((tag) => (
-            <span key={tag} className="tag">
-              {tag}
-            </span>
-          ))}
-        </div>
+        <span style={{ color: 'var(--color-text-muted)' }}>{post.readingTime}</span>
+        <TagList tags={post.tags} />
       </header>
       {post.content.map((paragraph) => (
         <p key={paragraph}>{paragraph}</p>

@@ -59,3 +59,27 @@ export const interests = [
   'Mentoring aspiring data engineers',
   'Trail running & analog photography'
 ];
+
+export const stats = [
+  { label: 'Platform roadmaps delivered', value: '18' },
+  { label: 'Engineers coached into leads', value: '11' },
+  { label: 'Data quality incidents prevented in 2023', value: '120+' }
+];
+
+export const operatingPrinciples = [
+  {
+    title: 'Lead with clarity',
+    description:
+      'Every initiative starts with a crisp narrative that aligns stakeholders, quantifies value, and surfaces risk early.'
+  },
+  {
+    title: 'Automate trust',
+    description:
+      'Reliability is a feature. I embed observability, testing, and feedback loops so teams ship with confidence.'
+  },
+  {
+    title: 'Elevate teams',
+    description:
+      'Scaling impact means coaching engineers, pairing on design decisions, and creating communities of practice.'
+  }
+];

@@ -6,15 +6,16 @@ blog covering data engineering and analytics strategy.
 
 ## Features
 
-- **Minimal Geeks-inspired aesthetic** with dark neon palette, glassmorphism, and responsive
+- **Minimal Geeks-inspired aesthetic** with theme switching, softened glass surfaces, and responsive
   layout.
-- **Profile & CV hub** highlighting experience, education, certifications, skills, and personal
-  interests for quick scanning.
-- **Projects showcase** with technology stacks, value-focused highlights, and external links to
-  GitHub repositories and live demos.
-- **Editorial blog** with metadata-aware article pages, static generation, and summary cards for
-  quick discovery.
-- **Global navigation and metadata** to ensure consistent branding and shareable previews.
+- **Profile & CV hub** highlighting experience, education, certifications, operating principles, and
+  personal interests for quick scanning.
+- **Projects showcase** with technology stacks, value-focused highlights, delivery timelines, and
+  external links to GitHub repositories and live demos.
+- **Editorial blog** with metadata-aware article pages, static generation, and discovery-friendly
+  summary cards.
+- **Global navigation and metadata** to ensure consistent branding, structured data, and shareable
+  previews.
 
 ## Getting started
 
@@ -24,7 +25,9 @@ npm run dev
 ```
 
 The site runs on [Next.js](https://nextjs.org/) and uses the App Router. Update the structured data in
-`/data` to refresh the content across profile, projects, and blog pages.
+`/data` to refresh the content across profile, projects, and blog pages. The design system lives in
+`app/globals.css`, and shared UI primitives (headers, sections, tag lists, toggles) live in
+`/components`.
 
 ## Commands
 

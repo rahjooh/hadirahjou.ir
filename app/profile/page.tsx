@@ -1,10 +1,15 @@
 import Link from 'next/link';
+import Section from '@/components/Section';
+import PageHeader from '@/components/PageHeader';
+import TagList from '@/components/TagList';
 import {
   certifications,
   education,
   experience,
   interests,
+  operatingPrinciples,
   skills,
+  stats as profileStats,
   summary
 } from '@/data/profile';
 
@@ -12,33 +17,51 @@ export const metadata = {
   title: 'Profile & CV'
 };
 
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Hadi Rahjou',
+  jobTitle: 'Lead Data Engineer',
+  url: 'https://hadirahjou.ir',
+  email: 'mailto:hadi@hadirahjou.ir',
+  sameAs: ['https://github.com/hadirahjou', 'https://www.linkedin.com/in/hadi-rahjou'],
+  description: summary,
+  knowsAbout: [...new Set(skills.flat())]
+};
+
 export default function ProfilePage() {
   return (
-    <div id="cv">
-      <section className="section-header">
-        <div>
-          <h1>Profile & CV</h1>
-          <p>
-            A strategist-engineer hybrid with a decade of experience building resilient analytics
-            ecosystems.
-          </p>
-        </div>
-        <Link href="mailto:hadi@hadirahjou.ir" className="button">
-          Request full CV
-        </Link>
-      </section>
+    <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
-      <section>
-        <div className="card" style={{ padding: '2rem' }}>
-          <h2 style={{ marginTop: 0 }}>About</h2>
+      <Section id="cv">
+        <PageHeader
+          title="Profile & CV"
+          eyebrow="Trusted by analytics-driven organisations"
+          description="A strategist-engineer hybrid guiding data platform transformations from discovery to measurable business impact."
+          action={{ href: 'mailto:hadi@hadirahjou.ir', label: 'Request full CV' }}
+        />
+        <div className="card" style={{ padding: '2.25rem' }}>
+          <h2>About</h2>
           <p>{summary}</p>
         </div>
-      </section>
+        <div className="stats-grid" style={{ marginTop: '2.5rem' }}>
+          {profileStats.map((stat) => (
+            <div key={stat.label} className="stat-card">
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </div>
+          ))}
+        </div>
+      </Section>
 
-      <section>
-        <div className="section-header">
-          <h2>Experience</h2>
-          <p>Leading high-performing data teams from discovery to production excellence.</p>
+      <Section>
+        <div className="page-header" style={{ marginBottom: '2rem' }}>
+          <div className="page-header__content">
+            <span className="eyebrow">Experience</span>
+            <h2>Leading high-performing data teams</h2>
+            <p>From lakehouse architecture to analytics enablement, I build programmes that scale with clarity and quality.</p>
+          </div>
         </div>
         <div className="timeline">
           {experience.map((item) => (
@@ -51,12 +74,33 @@ export default function ProfilePage() {
             </article>
           ))}
         </div>
-      </section>
+      </Section>
 
-      <section>
-        <div className="section-header">
-          <h2>Skills Matrix</h2>
-          <p>Balanced across engineering rigor, product mindset, and storytelling.</p>
+      <Section>
+        <div className="page-header" style={{ marginBottom: '2rem' }}>
+          <div className="page-header__content">
+            <span className="eyebrow">Operating Principles</span>
+            <h2>How I amplify teams</h2>
+            <p>Frameworks and rituals I bring to every engagement to keep delivery crisp, inclusive, and measurable.</p>
+          </div>
+        </div>
+        <div className="card-grid">
+          {operatingPrinciples.map((principle) => (
+            <article key={principle.title} className="card">
+              <h3>{principle.title}</h3>
+              <p>{principle.description}</p>
+            </article>
+          ))}
+        </div>
+      </Section>
+
+      <Section>
+        <div className="page-header" style={{ marginBottom: '2rem' }}>
+          <div className="page-header__content">
+            <span className="eyebrow">Skills Matrix</span>
+            <h2>Balanced across engineering, governance, and enablement</h2>
+            <p>Tooling fluency coupled with product sense and the communication chops to land outcomes.</p>
+          </div>
         </div>
         <div className="list-grid">
           {skills.map((group, idx) => (
@@ -67,15 +111,12 @@ export default function ProfilePage() {
             </ul>
           ))}
         </div>
-      </section>
+      </Section>
 
-      <section>
-        <div className="section-header">
-          <h2>Education & Certifications</h2>
-        </div>
+      <Section>
         <div className="card-grid">
-          <div className="card">
-            <h3>Education</h3>
+          <article className="card">
+            <span className="eyebrow">Education</span>
             {education.map((item) => (
               <p key={item.degree}>
                 <strong>{item.degree}</strong>
@@ -83,38 +124,30 @@ export default function ProfilePage() {
                 {item.institution} · {item.year}
               </p>
             ))}
-          </div>
-          <div className="card">
-            <h3>Certifications</h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          </article>
+          <article className="card">
+            <span className="eyebrow">Certifications</span>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.75rem' }}>
               {certifications.map((cert) => (
-                <li key={cert} style={{ marginBottom: '0.75rem' }}>
-                  {cert}
-                </li>
+                <li key={cert}>{cert}</li>
               ))}
             </ul>
-          </div>
+          </article>
         </div>
-      </section>
+      </Section>
 
-      <section>
-        <div className="section-header">
-          <h2>Outside the Terminal</h2>
-        </div>
-        <div className="card">
+      <Section>
+        <div className="card" style={{ padding: '2rem' }}>
+          <span className="eyebrow">Outside the terminal</span>
           <p>
-            I recharge by exploring the outdoors, mentoring early-career engineers, and experimenting
-            with analog photography.
+            I recharge by exploring the outdoors, mentoring early-career engineers, and experimenting with analog photography.
           </p>
-          <div className="tag-list">
-            {interests.map((interest) => (
-              <span key={interest} className="tag">
-                {interest}
-              </span>
-            ))}
-          </div>
+          <TagList tags={interests} />
+          <Link href="/blog" className="button button--ghost" style={{ width: 'fit-content', marginTop: '1.5rem' }}>
+            Read my writing
+          </Link>
         </div>
-      </section>
+      </Section>
     </div>
   );
 }

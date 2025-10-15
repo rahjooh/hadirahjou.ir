@@ -5,6 +5,8 @@ export interface Project {
   highlights: string[];
   repository: string;
   live?: string;
+  impact: string;
+  period: string;
 }
 
 export const projects: Project[] = [
@@ -18,6 +20,8 @@ export const projects: Project[] = [
       'Data quality guardrails automated with Great Expectations and CI gates',
       'Semantic layer powering Looker and Hex workspaces from a single source of truth'
     ],
+    impact: 'Reduced analytics lead time by 64% and enabled finance to self-serve KPI refreshes in minutes.',
+    period: '2023 — Present',
     repository: 'https://github.com/hadirahjou/pulselake'
   },
   {
@@ -30,6 +34,8 @@ export const projects: Project[] = [
       'Experiment tracking and deployment via MLflow pipelines',
       'Integrated root-cause explorer built with Next.js and server actions'
     ],
+    impact: 'Cut incident triage time by 45% with predictive staffing alerts adopted by SRE leadership.',
+    period: '2021 — 2023',
     repository: 'https://github.com/hadirahjou/atlasops',
     live: 'https://atlasops.hadirahjou.ir'
   },
@@ -43,6 +49,8 @@ export const projects: Project[] = [
       'Reusable Terraform modules for monitoring stacks',
       'Interactive documentation with Storybook and mdx support'
     ],
+    impact: 'Enabled 200+ teams to bootstrap governed analytics environments in under a day.',
+    period: '2019 — Present',
     repository: 'https://github.com/hadirahjou/dataops-starter-kits'
   }
 ];

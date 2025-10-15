@@ -1,9 +1,14 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' });
+
 export const metadata: Metadata = {
+  metadataBase: new URL('https://hadirahjou.ir'),
   title: {
     default: 'Hadi Rahjou — Data Engineer & Storyteller',
     template: '%s | Hadi Rahjou'
@@ -19,7 +24,6 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website'
   },
-  metadataBase: new URL('https://hadirahjou.ir'),
   keywords: [
     'data engineer',
     'analytics engineer',
@@ -27,7 +31,14 @@ export const metadata: Metadata = {
     'blog',
     'hadi rahjou',
     'data platforms'
-  ]
+  ],
+  icons: {
+    icon: '/favicon.svg'
+  }
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0f172a'
 };
 
 export default function RootLayout({
@@ -36,8 +47,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${jetbrains.variable}`}>
         <div className="page-wrapper">
           <Header />
           <main className="main-content">{children}</main>
