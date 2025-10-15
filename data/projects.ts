@@ -67,5 +67,20 @@ export const projects: Project[] = [
       'Gives crypto market data teams a hardened Kafka backbone for high-frequency order book ingestion without managing brokers.',
     period: '2024',
     repository: 'https://github.com/rahjooh/MSK-serverless'
+  },
+  {
+    title: 'CryptoFlow — High-Frequency Order Book Pipeline',
+    description:
+      'Go-based service that continuously captures Binance futures order book depth and archives flattened snapshots as Parquet files in S3 for downstream research.',
+    stack: ['Go', 'AWS S3', 'Parquet', 'Docker', 'Zerolog'],
+    highlights: [
+      'Reader, flattener, and S3 writer stages coordinated with back-pressure aware channels and tunable batch sizes',
+      'Partitioned Parquet layouts (exchange/market/symbol/time) with configurable flush intervals to balance fidelity and cost',
+      'Host-networked Docker deployment and IP shard mapping enabling multi-address traffic distribution across exchange endpoints'
+    ],
+    impact:
+      'Delivers production-ready order book archives that feed quant analytics pipelines without losing depth or consistency during high-volatility bursts.',
+    period: '2024',
+    repository: 'https://github.com/rahjooh/CryptoTrade'
   }
 ];
