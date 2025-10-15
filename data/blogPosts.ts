@@ -29,7 +29,7 @@ export const blogPosts: BlogPost[] = [
     summary:
       'Disentangling the hype from the real benefits of a unified semantic layer, plus a blueprint to ship one with dbt Metrics, Cube, or Transform.',
     date: '2024-02-02',
-    tags: ['Analytics Engineering', 'Semantic Layer'],
+    tags: ['Data Engineering', 'Semantic Layer'],
     readingTime: '6 min read',
     content: [
       'Metrics definitions sprawl across dashboards, BI tools, and spreadsheets. A semantic layer corals them into a single version of truth but only when paired with product thinking.',
