@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 const footerLinks = [
-  { href: 'https://github.com/hadirahjou', label: 'GitHub' },
+  { href: 'https://github.com/rahjooh', label: 'GitHub' },
   { href: 'https://www.linkedin.com/in/hadi-rahjou', label: 'LinkedIn' },
   { href: 'mailto:hadi@hadirahjou.ir', label: 'Email' }
 ];
