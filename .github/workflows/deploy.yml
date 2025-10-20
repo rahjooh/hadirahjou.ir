@@ -11,6 +11,9 @@ on:
 env:
   DEPLOY_ENVIRONMENT_NAME: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
 
+env:
+  DEPLOY_ENVIRONMENT_NAME: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
+
 jobs:
   ssh-test:
     name: Verify SSH connectivity
@@ -89,7 +92,7 @@ jobs:
                     proxy_set_header Connection "upgrade";
                 }
             }
-EOF
+            EOF
 
             $SUDO ln -sf "$SITE_CONF" "$SITE_LINK"
 
