@@ -166,30 +166,43 @@ jobs:
               SUDO=""
             fi
 
+            export DEBIAN_FRONTEND=noninteractive
+            export APT_LISTCHANGES_FRONTEND=none
+
+            UPDATED=0
+            apt_update_once() {
+              if [ "$UPDATED" -eq 0 ]; then
+                $SUDO apt-get update -o Dpkg::Use-Pty=0
+                UPDATED=1
+              fi
+            }
+
+            apt_install() {
+              apt_update_once
+              $SUDO apt-get install -y -o Dpkg::Use-Pty=0 "$@"
+            }
+
             if ! command -v curl >/dev/null 2>&1; then
-              $SUDO apt-get update
-              $SUDO apt-get install -y curl
+              apt_install curl
             fi
 
             if ! command -v node >/dev/null 2>&1; then
-              $SUDO apt-get update
-              $SUDO apt-get install -y ca-certificates gnupg
+              apt_install ca-certificates gnupg
               curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO bash -
-              $SUDO apt-get install -y nodejs
+              apt_install nodejs
             fi
 
             if ! command -v setcap >/dev/null 2>&1; then
-              $SUDO apt-get update
-              $SUDO apt-get install -y libcap2-bin
+              apt_install libcap2-bin
             fi
 
             if ! command -v pm2 >/dev/null 2>&1; then
               $SUDO npm install -g pm2
             fi
 
-            if command -v pm2 >/dev/null 2>&1; then
-              pm2 stop "$APP_NAME" || true
-              pm2 delete "$APP_NAME" || true
+            if command -v pm2 >/dev/null 2>&1 && pm2 describe "$APP_NAME" >/dev/null 2>&1; then
+              pm2 stop "$APP_NAME"
+              pm2 delete "$APP_NAME"
             fi
 
             rm -rf "$APP_DIR"
