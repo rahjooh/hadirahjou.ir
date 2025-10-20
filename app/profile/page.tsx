@@ -23,7 +23,7 @@ const structuredData = {
   name: 'Hadi Rahjou',
   jobTitle: 'Principal Data Engineer & Consultant',
   url: 'https://hadirahjou.ir',
-  email: 'mailto:hadi@hadirahjou.ir',
+  email: 'mailto:rahjooh@gmail.com',
   sameAs: ['https://github.com/rahjooh', 'https://www.linkedin.com/in/hadirahjou'],
   description: summary,
   knowsAbout: [...new Set(skills.flat())]
@@ -39,7 +39,7 @@ export default function ProfilePage() {
           title="Profile & CV"
           eyebrow="Data platforms for exchanges, marketplaces, and growth teams"
           description="I pair streaming-first architecture with pragmatic product instincts so stakeholders always have trustworthy, real-time insight."
-          action={{ href: 'mailto:hadi@hadirahjou.ir', label: 'Request project portfolio' }}
+          action={{ href: 'mailto:rahjooh@gmail.com', label: 'Request project portfolio' }}
         />
         <div className="card" style={{ padding: '2.25rem' }}>
           <h2>About</h2>
