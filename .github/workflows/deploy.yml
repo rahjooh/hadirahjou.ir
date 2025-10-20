@@ -116,12 +116,21 @@ jobs:
 
       - name: Prepare deployment archive
         run: |
+          set -euo pipefail
+
+          ARCHIVE_PATH="${RUNNER_TEMP}/deploy.tar.gz"
+
           rm -rf node_modules
-          tar czf deploy.tar.gz \
+          rm -f "$ARCHIVE_PATH" deploy.tar.gz
+
+          tar czf "$ARCHIVE_PATH" \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='deploy.tar.gz' \
+            --exclude='deploy.tar.gz.*' \
             .
+
+          mv "$ARCHIVE_PATH" ./deploy.tar.gz
 
       - name: Upload archive to server
         uses: appleboy/scp-action@v0.1.7
