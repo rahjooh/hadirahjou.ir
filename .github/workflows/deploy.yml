@@ -87,7 +87,7 @@ jobs:
                     proxy_set_header Connection "upgrade";
                 }
             }
-EOF
+            EOF
 
             $SUDO ln -sf "$SITE_CONF" "$SITE_LINK"
 
