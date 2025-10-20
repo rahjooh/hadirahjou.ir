@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+env:
+  DEPLOY_ENVIRONMENT_NAME: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
 
 env:
   DEPLOY_ENVIRONMENT_NAME: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
