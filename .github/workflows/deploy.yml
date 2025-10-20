@@ -14,7 +14,7 @@ jobs:
     name: Verify SSH connectivity
     runs-on: ubuntu-latest
     environment:
-      name: ${{ env.DEPLOY_ENVIRONMENT_NAME }}
+      name: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
     env:
       SSH_HOST: ${{ secrets.SSH_HOST || secrets.IP || vars.SSH_HOST || vars.IP }}
       SSH_USER: ${{ secrets.SSH_USER || secrets.USER || vars.SSH_USER || vars.USERNAME || vars.USER }}
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: ssh-test
     environment:
-      name: ${{ env.DEPLOY_ENVIRONMENT_NAME }}
+      name: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
     env:
       SSH_HOST: ${{ secrets.SSH_HOST || secrets.IP || vars.SSH_HOST || vars.IP }}
       SSH_USER: ${{ secrets.SSH_USER || secrets.USER || vars.SSH_USER || vars.USERNAME || vars.USER }}
