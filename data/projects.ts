@@ -11,49 +11,6 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    title: 'PulseLake — Modern Analytics Platform',
-    description:
-      'Composable lakehouse platform orchestrated with Dagster and Terraform, powering 60+ KPI dashboards with minute-level SLAs.',
-    stack: ['Dagster', 'DuckDB', 'dbt', 'Terraform', 'BigQuery'],
-    highlights: [
-      'Modular asset-based orchestration with environment-aware deployments',
-      'Data quality guardrails automated with Great Expectations and CI gates',
-      'Semantic layer powering Looker and Hex workspaces from a single source of truth'
-    ],
-    impact: 'Reduced analytics lead time by 64% and enabled finance to self-serve KPI refreshes in minutes.',
-    period: '2023 — Present',
-    repository: 'https://github.com/rahjooh/pulselake'
-  },
-  {
-    title: 'AtlasOps — Incident Intelligence Hub',
-    description:
-      'Operational analytics tool chaining streaming ingestion with a ML triage service to forecast incident response capacity.',
-    stack: ['Kafka', 'Spark Structured Streaming', 'Databricks', 'scikit-learn'],
-    highlights: [
-      'Feature store designed for both batch and streaming workloads',
-      'Experiment tracking and deployment via MLflow pipelines',
-      'Integrated root-cause explorer built with Next.js and server actions'
-    ],
-    impact: 'Cut incident triage time by 45% with predictive staffing alerts adopted by SRE leadership.',
-    period: '2021 — 2023',
-    repository: 'https://github.com/rahjooh/atlasops',
-    live: 'https://atlasops.hadirahjou.ir'
-  },
-  {
-    title: 'DataOps Starter Kits',
-    description:
-      'Collection of production-ready templates for CI/CD, governance, and observability tailored to analytics teams scaling quickly.',
-    stack: ['GitHub Actions', 'Great Expectations', 'Prefect', 'Metabase'],
-    highlights: [
-      'Opinionated blueprints for branching strategies and artifact promotion',
-      'Reusable Terraform modules for monitoring stacks',
-      'Interactive documentation with Storybook and mdx support'
-    ],
-    impact: 'Enabled 200+ teams to bootstrap governed analytics environments in under a day.',
-    period: '2019 — Present',
-    repository: 'https://github.com/rahjooh/dataops-starter-kits'
-  },
-  {
     title: 'MSK Serverless Crypto Data Platform',
     description:
       'Infrastructure-as-code stack that provisions an AWS MSK Serverless cluster with IAM-authenticated Kafka endpoints, CloudWatch logging, and guardrailed network access.',

@@ -25,7 +25,7 @@ export default async function HomePage() {
   const metricsLookup = new Map(repoMetrics.map((metric) => [metric.repo, metric]));
   const stats = [
     { label: 'Years shaping data platforms', value: '10+' },
-    { label: 'Teams mentored to production', value: '14' },
+    { label: 'Teams mentored to production', value: '2' },
     { label: 'Articles & talks published', value: '36' },
     { label: 'GitHub stars across flagship repos', value: portfolioSummary.totalStars.toLocaleString() },
     { label: 'Forks supporting community adoption', value: portfolioSummary.totalForks.toLocaleString() }
