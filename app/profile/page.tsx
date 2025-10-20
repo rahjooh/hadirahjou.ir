@@ -122,7 +122,7 @@ export default function ProfilePage() {
               <p key={item.degree}>
                 <strong>{item.degree}</strong>
                 <br />
-                {item.institution} · {item.year}
+                {item.institution} · {item.period}
               </p>
             ))}
           </article>
