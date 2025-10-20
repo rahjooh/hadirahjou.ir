@@ -11,9 +11,6 @@ on:
 env:
   DEPLOY_ENVIRONMENT_NAME: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
 
-env:
-  DEPLOY_ENVIRONMENT_NAME: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
-
 jobs:
   ssh-test:
     name: Verify SSH connectivity
