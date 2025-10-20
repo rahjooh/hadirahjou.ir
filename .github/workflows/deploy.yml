@@ -22,6 +22,59 @@ jobs:
           script: |
             echo "SSH connection successful"
 
+      - name: Ensure Nginx is installed and configured
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          script: |
+            set -euo pipefail
+
+            if command -v sudo >/dev/null 2>&1; then
+              SUDO="sudo"
+            else
+              SUDO=""
+            fi
+
+            if ! command -v nginx >/dev/null 2>&1; then
+              $SUDO apt-get update
+              $SUDO apt-get install -y nginx
+            fi
+
+            SITE_CONF="/etc/nginx/sites-available/hadirahjou-ir"
+            SITE_LINK="/etc/nginx/sites-enabled/hadirahjou-ir"
+
+            $SUDO tee "$SITE_CONF" >/dev/null <<'EOF'
+            server {
+                listen 80;
+                listen [::]:80;
+                server_name hadirahjou.ir www.hadirahjou.ir _;
+
+                location / {
+                    proxy_pass http://127.0.0.1:3000;
+                    proxy_http_version 1.1;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection "upgrade";
+                }
+            }
+  EOF
+  
+            $SUDO ln -sf "$SITE_CONF" "$SITE_LINK"
+            
+            if [ -e /etc/nginx/sites-enabled/default ]; then
+            $SUDO rm -f /etc/nginx/sites-enabled/default
+            fi
+            
+            $SUDO nginx -t
+            $SUDO systemctl enable nginx
+            $SUDO systemctl restart nginx
+
   deploy:
     name: Deploy to hadirahjou.ir
     runs-on: ubuntu-latest
