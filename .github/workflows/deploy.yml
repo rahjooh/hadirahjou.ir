@@ -6,14 +6,19 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  DEPLOY_ENVIRONMENT_NAME: ${{ vars.DEPLOY_ENVIRONMENT_NAME || vars.DEPLOY_ENV || 'host' }}
+
 jobs:
   ssh-test:
     name: Verify SSH connectivity
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ env.DEPLOY_ENVIRONMENT_NAME }}
     env:
       SSH_HOST: ${{ secrets.SSH_HOST || secrets.IP || vars.SSH_HOST || vars.IP }}
       SSH_USER: ${{ secrets.SSH_USER || secrets.USER || vars.SSH_USER || vars.USERNAME || vars.USER }}
-      SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || secrets.PASSWORD || vars.SSH_PASSWORD || vars.PASSWORD }}
+      SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || secrets.PASS || secrets.PASSWORD || vars.SSH_PASSWORD || vars.PASS || vars.PASSWORD }}
 
     steps:
       - name: Validate connection settings
@@ -27,7 +32,7 @@ jobs:
             exit 1
           fi
           if [ -z "${SSH_PASSWORD}" ]; then
-            echo "::error::Missing SSH password. Please define a secret or variable such as SSH_PASSWORD or PASSWORD." >&2
+            echo "::error::Missing SSH password. Please define a secret or variable such as SSH_PASSWORD, PASS, or PASSWORD." >&2
             exit 1
           fi
 
@@ -98,10 +103,12 @@ jobs:
     name: Deploy to hadirahjou.ir
     runs-on: ubuntu-latest
     needs: ssh-test
+    environment:
+      name: ${{ env.DEPLOY_ENVIRONMENT_NAME }}
     env:
       SSH_HOST: ${{ secrets.SSH_HOST || secrets.IP || vars.SSH_HOST || vars.IP }}
       SSH_USER: ${{ secrets.SSH_USER || secrets.USER || vars.SSH_USER || vars.USERNAME || vars.USER }}
-      SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || secrets.PASSWORD || vars.SSH_PASSWORD || vars.PASSWORD }}
+      SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || secrets.PASS || secrets.PASSWORD || vars.SSH_PASSWORD || vars.PASS || vars.PASSWORD }}
 
     steps:
       - name: Checkout repository
