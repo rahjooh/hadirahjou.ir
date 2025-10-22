@@ -230,3 +230,12 @@ jobs:
               $SUDO pm2 startup systemd -u "$(whoami)" --hp "$HOME" || true
             fi
             pm2 save
+
+
+            if command -v nginx >/dev/null 2>&1; then
+              if command -v systemctl >/dev/null 2>&1; then
+                $SUDO systemctl reload nginx || $SUDO systemctl restart nginx || true
+              else
+                $SUDO nginx -s reload || $SUDO service nginx reload || true
+              fi
+            fi
