@@ -29,11 +29,28 @@ The site runs on [Next.js](https://nextjs.org/) and uses the App Router. Update 
 `app/globals.css`, and shared UI primitives (headers, sections, tag lists, toggles) live in
 `/components`.
 
+### HTTPS support
+
+Local development and self-hosted deployments can be secured with HTTPS by providing certificate
+paths through environment variables. Set `HTTPS=true` alongside the key and certificate locations
+before starting the server:
+
+```bash
+HTTPS=true \
+SSL_KEY_PATH=./certs/localhost-key.pem \
+SSL_CERT_PATH=./certs/localhost-cert.pem \
+npm run dev
+```
+
+Optionally, include `SSL_CA_PATH` to supply a certificate authority bundle. Omitting `HTTPS=true`
+continues to serve the site over HTTP.
+
 ## Commands
 
 - `npm run dev` – Start the local development server.
 - `npm run build` – Create a production build.
-- `npm run start` – Launch the production server.
+- `npm run start` – Launch the production server (HTTPS support available with the same environment
+  variables).
 - `npm run lint` – Run ESLint using `eslint-config-next` rules.
 
 ## Deployment

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
+    "dev": "node server.mjs",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "NODE_ENV=production node server.mjs",
     "lint": "next lint"
   },
   "dependencies": {
