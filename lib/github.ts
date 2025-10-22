@@ -71,7 +71,8 @@ export async function getRepositoryMetrics(repos: string[]): Promise<RepositoryM
           lastPushedAt: data.pushed_at ?? undefined
         } satisfies RepositoryMetrics;
       } catch (error) {
-        console.warn('Failed to load GitHub repository metadata', repo, error);
+        const reason = error instanceof Error ? error.message : String(error);
+        console.warn(`Failed to load GitHub repository metadata for ${repo}: ${reason}`);
 
         return {
           repo,
