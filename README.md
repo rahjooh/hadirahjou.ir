@@ -40,3 +40,4 @@ The site runs on [Next.js](https://nextjs.org/) and uses the App Router. Update 
 
 Deploy to any platform that supports Next.js (Vercel, Netlify, Fly.io). Environment configuration is
 handled entirely via static data files, so no secrets are required to get started.
+
