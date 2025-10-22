@@ -28,7 +28,7 @@ export const projects: Project[] = [
   {
     title: 'CryptoFlow — High-Frequency Order Book Pipeline',
     description:
-      'Go-based service that continuously captures Binance futures order book depth and archives flattened snapshots as Parquet files in S3 for downstream research.',
+      'High concurrent Go-based service that high frequency continuously captures futures order book depth from several exchanges and archives flattened snapshots as Snappy Parquet files in S3 for downstream research.',
     stack: ['Go', 'AWS S3', 'Parquet', 'Docker', 'Zerolog'],
     highlights: [
       'Reader, flattener, and S3 writer stages coordinated with back-pressure aware channels and tunable batch sizes',

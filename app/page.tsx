@@ -54,10 +54,9 @@ export default async function HomePage() {
         <div className="highlight-cards">
           <article className="highlight-card">
             <span className="eyebrow">Latest Work</span>
-            <h3>PulseLake Platform</h3>
+            <h3>MSK Serverless Crypto Data Platform</h3>
             <p>
-              Steering a modular lakehouse with contract-first analytics, observability automation, and measurable business
-              adoption.
+                IaC stack that provisions an AWS MSK Serverless cluster with IAM-authenticated Kafka endpoints, CloudWatch logging, and guardrailed network access.
             </p>
             <Link href="/projects" className="button" style={{ width: 'fit-content' }}>
               Explore projects
