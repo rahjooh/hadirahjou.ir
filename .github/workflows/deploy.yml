@@ -78,6 +78,10 @@ jobs:
                 listen [::]:80;
                 server_name hadirahjou.ir www.hadirahjou.ir _;
 
+                ssl_protocols TLSv1.2 TLSv1.3;
+                ssl_prefer_server_ciphers on;
+                add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
                 location / {
                     proxy_pass http://127.0.0.1:3001;
                     proxy_http_version 1.1;
