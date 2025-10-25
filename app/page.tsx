@@ -93,8 +93,8 @@ export default async function HomePage() {
                 <TagList tags={project.stack} />
                 {metrics ? (
                   <div className="repo-metrics" aria-label="Repository metrics">
-                    <span>{metrics.stars.toLocaleString()} ⭐ Stars</span>
-                    <span>{metrics.forks.toLocaleString()} 🍴 Forks</span>
+                    {/*<span>{metrics.stars.toLocaleString()} ⭐ Stars</span>*/}
+                    {/*<span>{metrics.forks.toLocaleString()} 🍴 Forks</span>*/}
                   </div>
                 ) : null}
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>

@@ -41,8 +41,8 @@ export default async function ProjectsPage() {
                 <TagList tags={project.stack} />
                 {metrics ? (
                   <div className="repo-metrics" aria-label="Repository metrics">
-                    <span>{metrics.stars.toLocaleString()} ⭐ Stars</span>
-                    <span>{metrics.forks.toLocaleString()} 🍴 Forks</span>
+                    {/*<span>{metrics.stars.toLocaleString()} ⭐ Stars</span>*/}
+                    {/*<span>{metrics.forks.toLocaleString()} 🍴 Forks</span>*/}
                     <span>{metrics.watchers.toLocaleString()} 👀 Watchers</span>
                     {metrics.lastPushedAt ? (
                       <span>
