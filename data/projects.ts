@@ -10,7 +10,22 @@ export interface Project {
 }
 
 export const projects: Project[] = [
-  {
+    {
+    title: 'Spark Job Control API',
+    description:
+        'FastAPI control plane that clones the Spark-app template via GitLab tokens, authenticates with OKD, and exposes run/status/stop job management APIs.',
+    stack: ['FastAPI', 'GitLab API', 'OKD', 'Helm', 'Airflow'],
+    highlights: [
+        'Clones the Spark-app repository through a Spark API token and templates helm values before dispatching executions',
+        'Performs oc login against the data-de-spark namespace using the Spark service token and drives helm install/uninstall/status operations',
+        'Publishes run/status/stop REST endpoints with an interactive docs page and Airflow DAGs for scheduled maintenance'
+    ],
+    impact:
+        'Gives the data engineering team a documented control plane to launch and observe Spark jobs without direct cluster access.',
+    period: '2024',
+    repository: 'https://github.com/rahjooh/Spark_Api_runner'
+    },
+    {
     title: 'MSK Serverless Crypto Data Platform',
     description:
       'Infrastructure-as-code stack that provisions an AWS MSK Serverless cluster with IAM-authenticated Kafka endpoints, CloudWatch logging, and guardrailed network access.',

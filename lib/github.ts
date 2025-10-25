@@ -27,6 +27,12 @@ function resolveHeaders(): HeadersInit {
 export function repositorySlugFromUrl(url: string): string | null {
   try {
     const parsed = new URL(url);
+
+    const hostname = parsed.hostname.toLowerCase();
+    if (!hostname.endsWith('github.com')) {
+      return null;
+    }
+
     const segments = parsed.pathname.split('/').filter(Boolean);
 
     if (segments.length >= 2) {
