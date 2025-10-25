@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swa
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://hadirahjou.ir'),
+  metadataBase: new URL('http://hadirahjou.ir'),
   title: {
     default: 'Hadi Rahjou — Data Engineer & Storyteller',
     template: '%s | Hadi Rahjou'
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: 'Hadi Rahjou — Data Engineer & Storyteller',
     description:
       'Discover Hadi Rahjou\'s professional experience, highlighted projects, and essays about modern data engineering.',
-    url: 'https://hadirahjou.ir',
+    url: 'http://hadirahjou.ir',
     siteName: 'Hadi Rahjou',
     locale: 'en_US',
     type: 'website'

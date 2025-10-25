@@ -22,7 +22,7 @@ const structuredData = {
   '@type': 'Person',
   name: 'Hadi Rahjou',
   jobTitle: 'Principal Data Engineer & Consultant',
-  url: 'https://hadirahjou.ir',
+  url: 'http://hadirahjou.ir',
   email: 'mailto:rahjooh@gmail.com',
   sameAs: ['https://github.com/rahjooh', 'https://www.linkedin.com/in/hadirahjou'],
   description: summary,
