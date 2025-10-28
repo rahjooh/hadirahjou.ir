@@ -41,7 +41,9 @@ export default async function FullstackProjectsPage() {
                 <TagList tags={project.stack} />
                 {metrics ? (
                   <div className="repo-metrics" aria-label="Repository metrics">
-                    <span>{metrics.watchers.toLocaleString()} 👀 Watchers</span>
+                      {metrics.watchers > 0 ? (
+                          <span>{metrics.watchers.toLocaleString()} 👀 Watchers</span>
+                      ) : null}
                     {metrics.lastPushedAt ? (
                       <span>
                         Updated{' '}
