@@ -10,15 +10,15 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
-    slug: 'pinova-group-data-infra-design',
-    title: 'Pinova Group Data Infrastructure Design',
+    slug: 'Crypto-Data-lake-data-infra-design',
+    title: 'Crypto Data lake Data Infrastructure Design',
     summary:
-      'How we architected Pinova Group’s high-resolution crypto market data stack across ingestion, hot analytics, and long-term cold storage.',
+      'How we architected Crypto Data lake’s high-resolution crypto market data stack across ingestion, hot analytics, and long-term cold storage.',
     date: '2025-02-23',
     tags: ['Data Engineering', 'Architecture', 'AWS'],
     readingTime: '11 min read',
     content: [
-      '🔍 Pinova Group Data Infra Design',
+      '🔍 Crypto Data lake Data Infra Design',
       'We are building a high-resolution market data pipeline to collect data from multiple cryptocurrency exchanges and ingest it into our infrastructure to support both real-time and historical analytics workloads.',
       'After conducting thorough research and evaluating several architectural approaches, we have designed a robust and scalable solution composed of three distinct layers, each optimized for a specific role in the data lifecycle:',
       '🏗 Architecture Overview',
@@ -66,7 +66,7 @@ export const blogPosts: BlogPost[] = [
       '🔧 GitHub Actions (CI) — Lint, test, and build Docker images on main and tagged releases before pushing to Amazon ECR.',
       '🚀 Argo CD (GitOps Deployment) — Use declarative GitOps deployments so Argo CD watches Helm charts, syncs changes to EKS, supports automatic sync, rollbacks, and audit trails.',
       '💡 Image Embedding Hint — To place pictures between sections in future posts, extend the blog renderer to parse Markdown (e.g., using remark/rehype) or allow rich content components so you can include `![Alt text](/path/to/image.jpg)` in the post content and render it as an `<Image>` between paragraphs.',
-      'This architecture positions Pinova Group to capture, analyze, and retain high-fidelity crypto market data with confidence while leaving plenty of room for future enhancements.'
+      'This architecture positions Crypto Data lake to capture, analyze, and retain high-fidelity crypto market data with confidence while leaving plenty of room for future enhancements.'
     ]
   },
   {
