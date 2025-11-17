@@ -164,7 +164,7 @@ volumes:
   kafka_data:
     driver: local
 \`\`\``,
-      `After `docker-compose up -d`, access Kafka UI at http://localhost:8080, Kafka on localhost:9092, and Schema Registry on http://localhost:8081.`,
+      `After \`docker-compose up -d\`, access Kafka UI at http://localhost:8080, Kafka on localhost:9092, and Schema Registry on http://localhost:8081.`,
       `### Python Avro Producer`,
       `
 \`\`\`python
