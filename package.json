@@ -6,7 +6,7 @@
     "dev": "node server.mjs",
     "build": "next build",
     "start": "NODE_ENV=production node server.mjs",
-    "lint": "next lint"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "next": "14.1.0",
@@ -17,8 +17,6 @@
     "@types/node": "20.10.5",
     "@types/react": "18.2.38",
     "@types/react-dom": "18.2.15",
-    "eslint": "8.56.0",
-    "eslint-config-next": "14.1.0",
     "typescript": "5.3.3"
   }
 }

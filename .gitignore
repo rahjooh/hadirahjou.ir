@@ -37,3 +37,4 @@ logs
 
 # Misc
 *.tar.gz
+tsconfig.tsbuildinfo
