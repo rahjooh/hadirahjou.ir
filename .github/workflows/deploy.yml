@@ -18,6 +18,7 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST || secrets.IP || vars.SSH_HOST || vars.IP }}
       SSH_USER: ${{ secrets.SSH_USER || secrets.USER || vars.SSH_USER || vars.USERNAME || vars.USER }}
       SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || secrets.PASS || secrets.PASSWORD || vars.SSH_PASSWORD || vars.PASS || vars.PASSWORD }}
+      SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT || 22 }}
 
     steps:
       - name: Validate connection settings
@@ -41,7 +42,7 @@ jobs:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
           password: ${{ env.SSH_PASSWORD }}
-          port: 22
+          port: ${{ env.SSH_PORT }}
           script: |
             echo "SSH connection successful"
 
@@ -51,7 +52,7 @@ jobs:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
           password: ${{ env.SSH_PASSWORD }}
-          port: 22
+          port: ${{ env.SSH_PORT }}
           script: |
             set -eu
             if [ -n "${BASH:-}" ]; then
@@ -120,6 +121,7 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST || secrets.IP || vars.SSH_HOST || vars.IP }}
       SSH_USER: ${{ secrets.SSH_USER || secrets.USER || vars.SSH_USER || vars.USERNAME || vars.USER }}
       SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || secrets.PASS || secrets.PASSWORD || vars.SSH_PASSWORD || vars.PASS || vars.PASSWORD }}
+      SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT || 22 }}
 
     steps:
       - name: Checkout repository
@@ -143,15 +145,44 @@ jobs:
 
           mv "$ARCHIVE_PATH" ./deploy.tar.gz
 
+      - name: Install sshpass
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+
       - name: Upload archive to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ env.SSH_HOST }}
-          username: ${{ env.SSH_USER }}
-          password: ${{ env.SSH_PASSWORD }}
-          port: 22
-          source: "deploy.tar.gz"
-          target: "~/deployments"
+        env:
+          SSH_PORT: ${{ env.SSH_PORT }}
+        run: |
+          set -euo pipefail
+
+          SSH_PORT="${SSH_PORT:-22}"
+          REMOTE="${SSH_USER}@${SSH_HOST}"
+          REMOTE_DIR="~/deployments"
+          ARCHIVE_NAME="deploy.tar.gz"
+          REMOTE_PATH="$REMOTE_DIR/$ARCHIVE_NAME"
+          RETRIES=5
+          SLEEP_BETWEEN=10
+
+          sshpass -p "$SSH_PASSWORD" \
+            ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -p "$SSH_PORT" "$REMOTE" "mkdir -p ${REMOTE_DIR}"
+
+          for attempt in $(seq 1 "$RETRIES"); do
+            echo "Uploading archive (attempt ${attempt}/${RETRIES})"
+            if sshpass -p "$SSH_PASSWORD" \
+              scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -P "$SSH_PORT" "$ARCHIVE_NAME" "$REMOTE:$REMOTE_PATH"; then
+              echo "Upload complete"
+              exit 0
+            fi
+
+            if [ "$attempt" -lt "$RETRIES" ]; then
+              echo "Upload failed, retrying in ${SLEEP_BETWEEN}s"
+              sleep "$SLEEP_BETWEEN"
+            else
+              echo "::error::Failed to upload archive after ${RETRIES} attempts"
+              exit 1
+            fi
+          done
 
       - name: Deploy on remote host
         uses: appleboy/ssh-action@v0.1.10
@@ -159,7 +190,7 @@ jobs:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
           password: ${{ env.SSH_PASSWORD }}
-          port: 22
+          port: ${{ env.SSH_PORT }}
           script: |
             set -eu
             if [ -n "${BASH:-}" ]; then
