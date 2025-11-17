@@ -10,6 +10,528 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'produce-consume-messages-apache-kafka',
+    title: 'How to Produce and Consume Messages in Apache Kafka',
+    summary:
+      'Deep-dive guide for building reliable Kafka producers and consumers with Avro, Schema Registry, security hardening, and Python/Go/Java samples.',
+    date: '2025-02-26',
+    tags: ['Kafka', 'Streaming', 'Confluent'],
+    readingTime: '20 min read',
+    content: [
+      `Apache Kafka is a distributed streaming platform for publishing, subscribing to, storing, and processing records in real-time. This post walks through the concepts, production-ready configurations, security expectations, and end-to-end Python, Java, and Go samples for producing Avro messages, registering schemas, and consuming them reliably.`,
+      `### Core Concepts`,
+      `**Topics & Partitions** — Topics act as named feeds and each partition is an ordered, immutable log of records that is replicated across brokers. Messages carry sequential offsets per partition, so you can reason precisely about ordering and replay.`,
+      `**Producers & Consumers** — Producers publish events to specific topic partitions (optionally keyed), consumers subscribe and process data (usually inside consumer groups for scale), and Kafka’s metadata APIs let clients route directly to the correct leader broker without an intermediate tier.`,
+      `### Kafka Producers`,
+      `Kafka follows a “smart client, dumb broker” model. Producers decide which partition to target (randomly, by hashing a key, or via a custom partitioner) and talk directly to the partition leader. That enables semantics such as locality-aware partitioning (e.g., keeping the same user’s data on the same partition).`,
+      `### Kafka Consumers`,
+      `Consumers pull from the broker, issuing fetch requests starting from a particular offset and optionally re-consuming data by rewinding. The pull model enables batching, catch-up when clients fall behind, and tight control over processing semantics.`,
+      `### Delivery Guarantees`,
+      `Kafka supports at-most-once (lowest latency, potential data loss), at-least-once (possible duplicates), and exactly-once (requires idempotent + transactional producers and properly configured consumers). Producers leverage idempotent writes (sequence numbers per producer ID) and transactions to avoid duplicates, while consumers manage offsets carefully to preserve the same semantics.`,
+      `### Producer Delivery Modes`,
+      `*At most once*: fire-and-forget or leader-only acknowledgements. *At least once*: retries + acknowledgements, preferably with idempotence enabled. *Exactly once*: transactional producers introduced in Kafka 0.11 combine idempotence with atomic writes across partitions and topic pairs.`,
+      `### Consumer Receipt Modes`,
+      `*At most once*: commit offsets before processing. *At least once*: process data, then commit. *Exactly once*: coordinate offset commits and output writes inside a transaction (e.g., Kafka Streams using read_committed isolation).`,
+      `### Producer Configurations`,
+      `Key settings include: bootstrap.servers (list at least two brokers), serializers that match consumer deserializers, acks=all for durability, retries with retry.backoff.ms, enable.idempotence=true (requires acks=all, retries>0, max.in.flight<=5), batch.size + linger.ms for throughput/latency trade-offs, and compression.type (snappy/lz4/zstd).`,
+      `**Example producer configuration**:
+\`\`\`java
+Properties props = new Properties();
+props.put("bootstrap.servers", "broker1:9092,broker2:9092");
+props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+props.put("acks", "all");
+props.put("retries", 3);
+props.put("enable.idempotence", true);
+props.put("batch.size", 32768);
+props.put("linger.ms", 5);
+props.put("compression.type", "snappy");
+\`\`\``,
+      `### Consumer Configurations`,
+      `Match serializers/deserializers, set group.id for load-balanced consumption, use auto.offset.reset=earliest for replayability, tune enable.auto.commit (disable for manual control), size fetch.min/max.bytes and max.poll.records for throughput, and ensure heartbeat/session timeouts are aligned. Additional knobs include isolation.level=read_committed and partition.assignment.strategy (e.g., CooperativeSticky).`,
+      `**Example consumer configuration**:
+\`\`\`java
+Properties props = new Properties();
+props.put("bootstrap.servers", "broker1:9092,broker2:9092");
+props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+props.put("group.id", "my-consumer-group");
+props.put("auto.offset.reset", "earliest");
+props.put("enable.auto.commit", "true");
+props.put("fetch.min.bytes", "1");
+props.put("fetch.max.bytes", "52428800");
+props.put("max.poll.records", "500");
+props.put("session.timeout.ms", "30000");
+props.put("heartbeat.interval.ms", "3000");
+\`\`\``,
+      `### Handling Authentication`,
+      `The Data Engineering cluster uses SCRAM-SHA-512 with SASL_PLAINTEXT or SASL_SSL. Key properties: security.protocol (SASL_SSL recommended), sasl.mechanism=SCRAM-SHA-512, sasl.jaas.config (ScramLoginModule with username/password), and truststore settings for SSL. Apply these to both producers and consumers alongside the standard configs.`,
+      `### Local Development Stack`,
+      `Spin up Kafka, Schema Registry, and Kafka UI via Docker Compose:
+\`\`\`yaml
+version: '3.8'
+
+services:
+  kafka:
+    image: focker.ir/confluentinc/cp-kafka:7.5.1
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+    command:
+      - bash
+      - -c
+      - |
+        echo "Generating Cluster ID..."
+        if [[ ! -f "/tmp/cluster-id" ]]; then
+          kafka-storage random-uuid > /tmp/cluster-id
+        fi
+        CLUSTER_ID=$$(cat /tmp/cluster-id)
+        echo "Cluster ID: $$CLUSTER_ID"
+        echo "Formatting storage..."
+        kafka-storage format -t $$CLUSTER_ID -c /etc/kafka/kafka.properties
+        echo "Starting Kafka..."
+        /etc/confluent/docker/run
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server=localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  schema-registry:
+    image: focker.ir/confluentinc/cp-schema-registry:7.5.1
+    container_name: schema-registry
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
+      SCHEMA_REGISTRY_LISTENERS: 'http://0.0.0.0:8081'
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: "_schemas"
+      SCHEMA_REGISTRY_KAFKASTORE_TIMEOUT_MS: 15000
+      SCHEMA_REGISTRY_DEBUG: 'true'
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8081/subjects"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  kafka-ui:
+    image: focker.ir/provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  kafka_data:
+    driver: local
+\`\`\``,
+      `After `docker-compose up -d`, access Kafka UI at http://localhost:8080, Kafka on localhost:9092, and Schema Registry on http://localhost:8081.`,
+      `### Python Avro Producer`,
+      `
+\`\`\`python
+from confluent_kafka import SerializingProducer
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroSerializer
+from datetime import datetime
+
+KEY_SCHEMA_STR = """
+{
+   "type": "record",
+   "name": "UserId",
+   "namespace": "com.example",
+   "fields": [
+       {"name": "id", "type": "long"}
+   ]
+}
+"""
+
+VALUE_SCHEMA_STR = """
+{
+   "type": "record",
+   "name": "User",
+   "namespace": "com.example",
+   "fields": [
+       {"name": "id", "type": "long"},
+       {"name": "firstName", "type": "string"},
+       {"name": "lastName", "type": "string"},
+       {"name": "email", "type": "string"},
+       {"name": "dateOfBirth", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+       {"name": "licenseNumber", "type": "int"},
+       {"name": "createdAt", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+       {"name": "updatedAt", "type": {"type": "long", "logicalType": "timestamp-millis"}}
+   ]
+}
+"""
+
+# ... helper functions omitted for brevity ...
+
+if __name__ == "__main__":
+    TOPIC = "users_python"
+    SCHEMA_REGISTRY_URL = "http://192.168.1.90:8081"
+    BOOTSTRAP_SERVERS = "192.168.1.90:9092"
+    producer = create_producer(SCHEMA_REGISTRY_URL, BOOTSTRAP_SERVERS)
+    producer.produce(topic=TOPIC, key=sample_user["id"], value=sample_user, on_delivery=delivery_report)
+    producer.flush()
+\`\`\`
+`,
+      `The SerializingProducer pushes both key and value schemas to Schema Registry and enables idempotent delivery.`,
+      `### Python Avro Consumer`,
+      `
+\`\`\`python
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroDeserializer
+from confluent_kafka.deserializing_consumer import DeserializingConsumer
+
+# KEY_SCHEMA_STR and VALUE_SCHEMA_STR match the producer
+
+def create_consumer(schema_registry_url, bootstrap_servers, group_id, topic):
+    schema_registry_client = SchemaRegistryClient({'url': schema_registry_url})
+    key_avro_deserializer = AvroDeserializer(schema_registry_client, schema_str=KEY_SCHEMA_STR, from_dict=key_from_dict)
+    value_avro_deserializer = AvroDeserializer(schema_registry_client, schema_str=VALUE_SCHEMA_STR, from_dict=food_from_dict)
+    consumer_conf = {
+        'bootstrap.servers': bootstrap_servers,
+        'key.deserializer': key_deserializer,
+        'value.deserializer': value_deserializer,
+        'group.id': group_id,
+        'auto.offset.reset': 'earliest',
+        'enable.auto.commit': True
+    }
+    consumer = DeserializingConsumer(consumer_conf)
+    consumer.subscribe([topic])
+    return consumer
+
+if __name__ == "__main__":
+    consumer = create_consumer("http://192.168.1.90:8081", "192.168.1.90:9092", "users_python_consumer_group", "users_python")
+    while True:
+        msg = consumer.poll(1.0)
+        # handle message / errors, convert timestamps to datetime, print payload
+\`\`\`
+`,
+      `This consumer polls, deserializes Avro payloads, and prints human-friendly timestamps.`,
+      `### Java Avro Producer`,
+      `
+\`\`\`java
+package org.example;
+
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.clients.producer.*;
+
+public class Consumer {
+   private static final String KEY_SCHEMA_STR = """{ ... }""";
+   private static final String VALUE_SCHEMA_STR = """{ ... }""";
+   private static final String TOPIC = "users_java";
+
+   private static Producer<GenericRecord, GenericRecord> createProducer() {
+       Properties props = new Properties();
+       props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+       props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+       props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+       props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
+       props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
+       props.put(ProducerConfig.ACKS_CONFIG, "all");
+       props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
+       props.put(ProducerConfig.RETRIES_CONFIG, "10000");
+       props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, "100");
+       return new KafkaProducer<>(props);
+   }
+
+   // sendSampleUser builds GenericRecords, sends synchronously, and logs metadata
+}
+\`\`\`
+`,
+      `### Java Avro Consumer`,
+      `
+\`\`\`java
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import org.apache.kafka.clients.consumer.*;
+import org.apache.avro.generic.GenericRecord;
+
+Properties properties = new Properties();
+properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+properties.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
+properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class.getName());
+properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class.getName());
+properties.put("schema.registry.url", SCHEMA_REGISTRY_URL);
+properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+try (KafkaConsumer<GenericRecord, GenericRecord> consumer = new KafkaConsumer<>(properties)) {
+    consumer.subscribe(Collections.singletonList(TOPIC_NAME));
+    while (true) {
+        ConsumerRecords<GenericRecord, GenericRecord> records = consumer.poll(Duration.ofMillis(100));
+        // log key/value/partition/offset/timestamp for each record
+    }
+}
+\`\`\`
+`,
+      `**pom.xml dependencies**:
+\`\`\`xml
+<repositories>
+  <repository>
+    <id>confluent</id>
+    <url>https://packages.confluent.io/maven/</url>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>org.apache.kafka</groupId>
+    <artifactId>kafka-clients</artifactId>
+    <version>3.8.1</version>
+  </dependency>
+  <dependency>
+    <groupId>io.confluent</groupId>
+    <artifactId>kafka-avro-serializer</artifactId>
+    <version>7.7.1</version>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.avro</groupId>
+    <artifactId>avro</artifactId>
+    <version>1.11.3</version>
+  </dependency>
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>2.0.9</version>
+  </dependency>
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-simple</artifactId>
+    <version>2.0.9</version>
+  </dependency>
+</dependencies>
+\`\`\``,
+      `### Go Avro Producer`,
+      `
+\`\`\`go
+package main
+
+import (
+   "fmt"
+   "os"
+   "time"
+
+   "github.com/confluentinc/confluent-kafka-go/v2/kafka"
+   "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
+   "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
+   "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde/avro"
+)
+
+const (
+   topicName         = "users_go"
+   schemaRegistryURL = "http://192.168.1.90:8081"
+   bootstrapServers  = "192.168.1.90:9092"
+)
+
+// KeySchema, ValueSchema, User struct, UserKey struct defined here
+
+producerConfig := &kafka.ConfigMap{
+   "bootstrap.servers":       bootstrapServers,
+   "enable.idempotence":      true,
+   "acks":                    "all",
+   "compression.type":        "snappy",
+   "batch.size":              16384,
+   "linger.ms":               10,
+   "message.timeout.ms":      30000,
+   "retries":                 1000000,
+   "socket.keepalive.enable": true,
+}
+
+producer.Produce(&kafka.Message{TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny}, Key: serializedKey, Value: serializedValue}, nil)
+producer.Flush(15 * 1000)
+\`\`\`
+`,
+      `### Go Avro Consumer`,
+      `
+\`\`\`go
+package main
+
+import (
+   "fmt"
+   "os"
+   "os/signal"
+   "syscall"
+   "time"
+
+   "github.com/confluentinc/confluent-kafka-go/v2/kafka"
+   "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
+   "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
+   "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde/avro"
+)
+
+consumerConfig := &kafka.ConfigMap{
+   "bootstrap.servers": bootstrapServers,
+   "group.id":          "go_consumer",
+   "auto.offset.reset": "earliest",
+}
+
+for run {
+   ev := consumer.Poll(100)
+   switch e := ev.(type) {
+   case *kafka.Message:
+       var key UserKey
+       keyDeserializer.DeserializeInto(*e.TopicPartition.Topic+"-key", e.Key, &key)
+       var user User
+       valueDeserializer.DeserializeInto(*e.TopicPartition.Topic+"-value", e.Value, &user)
+       // print record fields and timestamps
+   case kafka.Error:
+       fmt.Printf("Error: %v\n", e)
+   }
+}
+\`\`\`
+`,
+      `These Go samples rely on the Confluent Schema Registry client and serde packages for Avro serialization/deserialization.`,
+      `### Additional Resources`,
+      `Browse more producer/consumer examples at:
+- https://github.com/confluentinc/confluent-kafka-python/tree/master/examples
+- https://github.com/confluentinc/confluent-kafka-go/tree/master/examples
+- https://github.com/abtpst/kafka-confluent-examples/tree/master/kafka-clients
+
+For questions reach out at de@snapp.cab or amin.qurjili@snapp.cabs.`,
+      `### Bonus Docker Compose Template`,
+      `A second reference compose file is available for quickly spinning up Kafka, Schema Registry, and Kafka UI:
+\`\`\`yaml
+version: '3.8'
+
+services:
+ kafka:
+   image: focker.ir/confluentinc/cp-kafka:7.5.1
+   container_name: kafka
+   ports:
+     - "9092:9092"
+     - "29092:29092"
+   environment:
+     KAFKA_NODE_ID: 1
+     KAFKA_PROCESS_ROLES: 'broker,controller'
+     KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+     KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+     KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+     KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+     KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+     KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+     KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+     KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+     CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+     KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+     KAFKA_MIN_INSYNC_REPLICAS: 1
+   command:
+     - bash
+     - -c
+     - |
+       echo "Generating Cluster ID..."
+       if [[ ! -f "/tmp/cluster-id" ]]; then
+         kafka-storage random-uuid > /tmp/cluster-id
+       fi
+       CLUSTER_ID=$$(cat /tmp/cluster-id)
+       echo "Cluster ID: $$CLUSTER_ID"
+       echo "Formatting storage..."
+       kafka-storage format -t $$CLUSTER_ID -c /etc/kafka/kafka.properties
+       echo "Starting Kafka..."
+       /etc/confluent/docker/run
+   healthcheck:
+     test: ["CMD-SHELL", "kafka-topics --bootstrap-server=localhost:9092 --list"]
+     interval: 30s
+     timeout: 10s
+     retries: 3
+     start_period: 60s
+   volumes:
+     - kafka_data:/var/lib/kafka/data
+
+ schema-registry:
+   image: focker.ir/confluentinc/cp-schema-registry:7.5.1
+   container_name: schema-registry
+   depends_on:
+     kafka:
+       condition: service_healthy
+   ports:
+     - "8081:8081"
+   environment:
+     SCHEMA_REGISTRY_HOST_NAME: schema-registry
+     SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
+     SCHEMA_REGISTRY_LISTENERS: 'http://0.0.0.0:8081'
+     SCHEMA_REGISTRY_KAFKASTORE_TOPIC: "_schemas"
+     SCHEMA_REGISTRY_KAFKASTORE_TIMEOUT_MS: 15000
+     SCHEMA_REGISTRY_DEBUG: 'true'
+   healthcheck:
+     test: ["CMD", "curl", "--fail", "http://localhost:8081/subjects"]
+     interval: 30s
+     timeout: 10s
+     retries: 3
+     start_period: 30s
+
+ kafka-ui:
+   image: focker.ir/provectuslabs/kafka-ui:latest
+   container_name: kafka-ui
+   depends_on:
+     kafka:
+       condition: service_healthy
+     schema-registry:
+       condition: service_started
+   ports:
+     - "8080:8080"
+   environment:
+     KAFKA_CLUSTERS_0_NAME: local
+     KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+     KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+     DYNAMIC_CONFIG_ENABLED: 'true'
+   healthcheck:
+     test: ["CMD", "curl", "--fail", "http://localhost:8080"]
+     interval: 30s
+     timeout: 10s
+     retries: 3
+
+volumes:
+ kafka_data:
+   driver: local
+\`\`\`
+`
+    ]
+  },
+  {
     slug: 'amazon-msk-vs-amazon-msk-serverless-benchmarking',
     title: 'Amazon MSK vs. Amazon MSK Serverless: Architecture Notes & Benchmarks',
     summary:
