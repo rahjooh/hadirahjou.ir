@@ -14,7 +14,7 @@ export const blogPosts: BlogPost[] = [
     title: 'How to Produce and Consume Messages in Apache Kafka',
     summary:
       'Deep-dive guide for building reliable Kafka producers and consumers with Avro, Schema Registry, security hardening, and Python/Go/Java samples.',
-    date: '2025-02-26',
+    date: '2022-02-26',
     tags: ['Kafka', 'Streaming', 'Confluent'],
     readingTime: '20 min read',
     content: [
