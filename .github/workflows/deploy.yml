@@ -131,7 +131,6 @@ jobs:
             fi
 
             $SUDO nginx -t
-            $SUDO systemctl enable nginx
             $SUDO systemctl restart nginx
 
   deploy:
