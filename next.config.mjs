@@ -6,11 +6,7 @@ const nextConfig = {
   },
   // Reduce memory usage during build
   productionBrowserSourceMaps: false,
-  // Optimize output file tracing
-  outputFileTracingIncludes: {
-    '/**': ['./data/**/*', './lib/**/*'],
-  },
-  // Reduce memory footprint
+  // Reduce memory footprint - exclude heavy dependencies from tracing
   experimental: {
     outputFileTracingExcludes: {
       '*': [
