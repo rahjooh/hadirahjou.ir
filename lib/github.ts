@@ -46,13 +46,18 @@ export function repositorySlugFromUrl(url: string): string | null {
   }
 }
 
-const fetchRepository = cache(async (repo: string) => {
+const fetchRepository = cache(async (repo: string): Promise<any | null> => {
   const response = await fetch(`${GITHUB_API_BASE}/repos/${repo}`, {
     headers: resolveHeaders(),
     next: { revalidate: 60 * 60 }
   });
 
   if (!response.ok) {
+    // Return null for 404 (not found) errors instead of throwing
+    // This allows the build to continue gracefully for missing repositories
+    if (response.status === 404) {
+      return null;
+    }
     throw new Error(`GitHub responded with ${response.status} for ${repo}`);
   }
 
@@ -67,6 +72,17 @@ export async function getRepositoryMetrics(repos: string[]): Promise<RepositoryM
       try {
         const data = await fetchRepository(repo);
 
+        // Handle 404 responses (repository not found)
+        if (data === null) {
+          return {
+            repo,
+            url: `https://github.com/${repo}`,
+            stars: 0,
+            forks: 0,
+            watchers: 0
+          } satisfies RepositoryMetrics;
+        }
+
         return {
           repo,
           url: data.html_url ?? `https://github.com/${repo}`,
@@ -77,7 +93,11 @@ export async function getRepositoryMetrics(repos: string[]): Promise<RepositoryM
           lastPushedAt: data.pushed_at ?? undefined
         } satisfies RepositoryMetrics;
       } catch (error) {
-        console.warn('Failed to load GitHub repository metadata', repo, error);
+        // Log errors (404s are handled above and won't reach here)
+        // Only log in development to reduce build noise
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to load GitHub repository metadata', repo, error);
+        }
 
         return {
           repo,
