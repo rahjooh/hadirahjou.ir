@@ -29,7 +29,7 @@ jobs:
         run: npm run lint
 
       - name: Build project
-        run: npm run build
+        run: NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
   ssh-test:
     name: Verify SSH connectivity
@@ -279,7 +279,23 @@ jobs:
 
             cd "$APP_DIR"
             npm install
-            npm run build
+            
+            # Check available memory and set appropriate Node.js memory limit
+            AVAILABLE_MEM=$(free -m | awk '/^Mem:/{print $7}')
+            if [ "$AVAILABLE_MEM" -lt 1024 ]; then
+              # Low memory system - use conservative limit
+              NODE_MEM_LIMIT=1024
+            elif [ "$AVAILABLE_MEM" -lt 2048 ]; then
+              # Medium memory system
+              NODE_MEM_LIMIT=1536
+            else
+              # Sufficient memory
+              NODE_MEM_LIMIT=2048
+            fi
+            
+            echo "Available memory: ${AVAILABLE_MEM}MB, using Node.js memory limit: ${NODE_MEM_LIMIT}MB"
+            # Increase Node.js memory limit for build to prevent OOM
+            NODE_OPTIONS="--max-old-space-size=${NODE_MEM_LIMIT}" npm run build
 
             if [ -n "$SUDO" ]; then
               NODE_BIN="$(command -v node || true)"
