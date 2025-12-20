@@ -149,23 +149,48 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: NODE_OPTIONS="--max-old-space-size=4096" npm run build
+
+      - name: Verify build output
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "::error::Build failed - .next directory not found"
+            exit 1
+          fi
+          echo "Build output verified: .next directory exists"
+
       - name: Prepare deployment archive
         run: |
           set -euo pipefail
 
           ARCHIVE_PATH="${RUNNER_TEMP}/deploy.tar.gz"
 
+          # Remove dev dependencies and keep only production files
           rm -rf node_modules
           rm -f "$ARCHIVE_PATH" deploy.tar.gz
 
+          # Create archive with source files and build output
+          # Note: .next/cache is excluded but .next/standalone and .next/static are included
           tar czf "$ARCHIVE_PATH" \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='deploy.tar.gz' \
             --exclude='deploy.tar.gz.*' \
+            --exclude='.next/cache' \
             .
 
           mv "$ARCHIVE_PATH" ./deploy.tar.gz
+          echo "Deployment archive created successfully"
 
       - name: Install sshpass
         run: |
@@ -278,50 +303,9 @@ jobs:
             rm -f "$ARCHIVE_PATH"
 
             cd "$APP_DIR"
-            npm install
             
-            # Check available memory and create swap if needed
-            AVAILABLE_MEM=$(free -m | awk '/^Mem:/{print $7}')
-            TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')
-            
-            # Create swap file if system has less than 2GB total memory or less than 512MB available
-            if [ "$TOTAL_MEM" -lt 2048 ] || [ "$AVAILABLE_MEM" -lt 512 ]; then
-              SWAP_FILE="/tmp/nextjs-build-swap"
-              if [ ! -f "$SWAP_FILE" ]; then
-                echo "Creating 2GB swap file for build..."
-                $SUDO fallocate -l 2G "$SWAP_FILE" 2>/dev/null || $SUDO dd if=/dev/zero of="$SWAP_FILE" bs=1M count=2048
-                $SUDO chmod 600 "$SWAP_FILE"
-                $SUDO mkswap "$SWAP_FILE"
-                $SUDO swapon "$SWAP_FILE"
-                echo "Swap file created and activated"
-              fi
-            fi
-            
-            # Set Node.js memory limit based on available memory
-            # Be conservative to avoid OOM kills
-            if [ "$AVAILABLE_MEM" -lt 512 ]; then
-              # Very low memory - use minimal limit (with swap, we can go higher)
-              NODE_MEM_LIMIT=1024
-            elif [ "$AVAILABLE_MEM" -lt 1024 ]; then
-              # Low memory system - use conservative limit
-              NODE_MEM_LIMIT=1536
-            elif [ "$AVAILABLE_MEM" -lt 2048 ]; then
-              # Medium memory system
-              NODE_MEM_LIMIT=2048
-            else
-              # Sufficient memory
-              NODE_MEM_LIMIT=3072
-            fi
-            
-            echo "Available memory: ${AVAILABLE_MEM}MB, Total: ${TOTAL_MEM}MB, using Node.js memory limit: ${NODE_MEM_LIMIT}MB"
-            # Increase Node.js memory limit for build to prevent OOM
-            NODE_OPTIONS="--max-old-space-size=${NODE_MEM_LIMIT}" npm run build
-            
-            # Clean up swap file after build
-            if [ -f "$SWAP_FILE" ]; then
-              $SUDO swapoff "$SWAP_FILE" 2>/dev/null || true
-              $SUDO rm -f "$SWAP_FILE"
-            fi
+            # Install only production dependencies (build is already done in GitHub Actions)
+            npm ci --omit=dev
 
             if [ -n "$SUDO" ]; then
               NODE_BIN="$(command -v node || true)"
