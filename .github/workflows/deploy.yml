@@ -284,8 +284,42 @@ jobs:
             mkdir -p "$APP_DIR"
             
             # Extract static files (out directory) to app directory
+            # The archive contains 'out/' directory, so we extract it directly
             tar -xzf "$ARCHIVE_PATH" -C "$APP_DIR"
             rm -f "$ARCHIVE_PATH"
+            
+            # Verify the out directory exists and has files
+            if [ ! -d "$APP_DIR/out" ] || [ -z "$(ls -A $APP_DIR/out 2>/dev/null)" ]; then
+              echo "Error: out directory is missing or empty after extraction"
+              echo "APP_DIR contents:"
+              ls -la "$APP_DIR" || true
+              if [ -f "$ARCHIVE_PATH" ]; then
+                echo "Archive contents:"
+                tar -tzf "$ARCHIVE_PATH" 2>/dev/null | head -20 || echo "Could not list archive"
+              fi
+              exit 1
+            fi
+            
+            # Set proper permissions for nginx to read the files
+            chmod -R 755 "$APP_DIR/out"
+            find "$APP_DIR/out" -type f -exec chmod 644 {} \;
+            
+            echo "Static files extracted successfully to $APP_DIR/out"
+            echo "Contents of out directory:"
+            ls -la "$APP_DIR/out" | head -20 || true
+            echo "Checking for index.html:"
+            ls -la "$APP_DIR/out/index.html" || echo "WARNING: index.html not found!"
+            
+            # Update nginx config with the correct absolute path
+            SITE_CONF="/etc/nginx/sites-available/hadirahjou-ir"
+            if [ -f "$SITE_CONF" ]; then
+              # Get absolute path
+              ABS_APP_DIR="$(cd "$APP_DIR" && pwd)"
+              # Update the root path in nginx config
+              $SUDO sed -i "s|root .*;|root $ABS_APP_DIR/out;|" "$SITE_CONF"
+              echo "Updated nginx config with path: $ABS_APP_DIR/out"
+              $SUDO nginx -t || echo "WARNING: nginx config test failed"
+            fi
 
             # Reload nginx to serve the new static files
             if command -v nginx >/dev/null 2>&1; then
