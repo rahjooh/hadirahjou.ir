@@ -425,3 +425,87 @@ jobs:
                 echo "Nginx reloaded"
               fi
             fi
+            
+            # DEBUGGING: Comprehensive checks to diagnose 404 issues
+            echo "=== DEBUGGING INFORMATION ==="
+            
+            # 1. Show the actual nginx config file contents
+            echo "--- Nginx config file contents ---"
+            $SUDO cat "$SITE_CONF" || echo "Could not read nginx config"
+            
+            # 2. Verify nginx is running
+            echo "--- Nginx status ---"
+            if command -v systemctl >/dev/null 2>&1; then
+              $SUDO systemctl status nginx --no-pager -l || true
+            else
+              $SUDO service nginx status || true
+            fi
+            
+            # 3. Check nginx error logs (last 20 lines)
+            echo "--- Recent nginx error logs ---"
+            if [ -f /var/log/nginx/error.log ]; then
+              $SUDO tail -20 /var/log/nginx/error.log || echo "Could not read error log"
+            else
+              echo "Error log not found at /var/log/nginx/error.log"
+              echo "Searching for error logs..."
+              $SUDO find /var/log -name "*nginx*error*" 2>/dev/null | head -5 || true
+            fi
+            
+            # 4. Check nginx access logs (last 10 lines)
+            echo "--- Recent nginx access logs ---"
+            if [ -f /var/log/nginx/access.log ]; then
+              $SUDO tail -10 /var/log/nginx/access.log || echo "Could not read access log"
+            else
+              echo "Access log not found at /var/log/nginx/access.log"
+            fi
+            
+            # 5. Test if nginx can actually read the files
+            echo "--- Testing file accessibility ---"
+            if [ -f "$ABS_OUT_DIR/index.html" ]; then
+              echo "✓ index.html exists: $ABS_OUT_DIR/index.html"
+              $SUDO ls -la "$ABS_OUT_DIR/index.html" || true
+              
+              # Test as nginx user
+              NGINX_USER="www-data"
+              if id "$NGINX_USER" &>/dev/null; then
+                echo "Testing file access as $NGINX_USER:"
+                $SUDO -u "$NGINX_USER" test -r "$ABS_OUT_DIR/index.html" && echo "✓ $NGINX_USER can read index.html" || echo "✗ $NGINX_USER CANNOT read index.html"
+                $SUDO -u "$NGINX_USER" test -x "$ABS_OUT_DIR" && echo "✓ $NGINX_USER can access directory" || echo "✗ $NGINX_USER CANNOT access directory"
+              fi
+            else
+              echo "✗ ERROR: index.html does not exist at $ABS_OUT_DIR/index.html"
+            fi
+            
+            # 6. Verify the root path in nginx config matches actual path
+            echo "--- Verifying nginx root path ---"
+            CONFIG_ROOT=$($SUDO grep -E "^\s*root\s+" "$SITE_CONF" | head -1 | sed 's/.*root[[:space:]]*\([^;]*\);.*/\1/' | xargs)
+            echo "Root path in config: '$CONFIG_ROOT'"
+            echo "Actual out directory: '$ABS_OUT_DIR'"
+            if [ "$CONFIG_ROOT" = "$ABS_OUT_DIR" ]; then
+              echo "✓ Paths match"
+            else
+              echo "✗ WARNING: Paths do not match!"
+            fi
+            
+            # 7. Test nginx config syntax in detail
+            echo "--- Detailed nginx config test ---"
+            $SUDO nginx -t -c /etc/nginx/nginx.conf 2>&1 || true
+            
+            # 8. Check which nginx config is actually being used
+            echo "--- Active nginx configuration ---"
+            $SUDO nginx -T 2>/dev/null | grep -A 30 "server_name hadirahjou.ir" || echo "Could not extract active config"
+            
+            # 9. List files in the out directory
+            echo "--- Files in out directory ---"
+            ls -la "$ABS_OUT_DIR" | head -15 || true
+            
+            # 10. Test direct file access
+            echo "--- Testing direct file access ---"
+            if [ -f "$ABS_OUT_DIR/index.html" ]; then
+              echo "File size: $(stat -c%s "$ABS_OUT_DIR/index.html" 2>/dev/null || stat -f%z "$ABS_OUT_DIR/index.html" 2>/dev/null) bytes"
+              echo "First 100 chars of index.html:"
+              head -c 100 "$ABS_OUT_DIR/index.html" || true
+              echo ""
+            fi
+            
+            echo "=== END DEBUGGING INFORMATION ==="
