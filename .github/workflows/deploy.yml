@@ -23,7 +23,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit
 
       - name: Run lint/type-check
         run: npm run lint
@@ -95,26 +95,21 @@ jobs:
 
             SITE_CONF="/etc/nginx/sites-available/hadirahjou-ir"
             SITE_LINK="/etc/nginx/sites-enabled/hadirahjou-ir"
+            APP_DIR="$HOME/apps/hadirahjou.ir"
 
-            $SUDO tee "$SITE_CONF" >/dev/null <<'EOF'
-            # Add upstream with keepalive (add this before the server blocks)
-            upstream hadirahjou_backend {
-                server 127.0.0.1:3001;
-                keepalive 64;
-            }
-
+            $SUDO tee "$SITE_CONF" >/dev/null <<EOF
             server {
                 listen 80;
                 listen [::]:80;
                 server_name hadirahjou.ir www.hadirahjou.ir;
 
                 # Redirect HTTP to HTTPS
-                return 301 https://$host$request_uri;
+                return 301 https://\$host\$request_uri;
             }
 
             server {
-                listen 443 ssl http2;  # Added http2
-                listen [::]:443 ssl http2;  # Added http2
+                listen 443 ssl http2;
+                listen [::]:443 ssl http2;
                 server_name hadirahjou.ir www.hadirahjou.ir;
 
                 ssl_certificate /etc/letsencrypt/live/hadirahjou.ir/fullchain.pem;
@@ -124,42 +119,28 @@ jobs:
                 ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES128-GCM-SHA256';
                 ssl_prefer_server_ciphers off;
 
-                location / {
-                    proxy_pass http://hadirahjou_backend;  # Use upstream instead of direct IP
-                    
-                    # HTTP version for keepalive
-                    proxy_http_version 1.1;
-                    proxy_set_header Connection "";
-                    
-                    # Headers
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                    proxy_set_header Upgrade $http_upgrade;
-                    proxy_set_header Connection "upgrade";
-                    
-                    # Buffer settings (critical for performance)
-                    proxy_buffer_size 128k;
-                    proxy_buffers 4 256k;
-                    proxy_busy_buffers_size 256k;
-                    proxy_temp_file_write_size 256k;
-                    
-                    # Timeouts
-                    proxy_connect_timeout 60s;
-                    proxy_send_timeout 60s;
-                    proxy_read_timeout 60s;
-                    
-                    # Cache bypass for upgrades
-                    proxy_cache_bypass $http_upgrade;
-                }
-                
-                # Cache static files
+                # Root directory for static files
+                root ${APP_DIR}/out;
+                index index.html;
+
+                # Gzip compression
+                gzip on;
+                gzip_vary on;
+                gzip_min_length 1024;
+                gzip_types text/css application/javascript application/json
+                           text/plain text/xml text/javascript
+                           application/x-javascript application/xml+rss;
+
+                # Cache static assets
                 location /_next/static {
-                    proxy_pass http://hadirahjou_backend;
-                    proxy_cache_valid 200 365d;
+                    expires 1y;
                     add_header Cache-Control "public, immutable";
-                    expires 365d;
+                    access_log off;
+                }
+
+                # Serve HTML files
+                location / {
+                    try_files \$uri \$uri.html \$uri/ =404;
                 }
             }
             EOF
@@ -196,18 +177,20 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit
 
       - name: Build project
         run: NODE_OPTIONS="--max-old-space-size=4096" npm run build
+        env:
+          NODE_ENV: production
 
       - name: Verify build output
         run: |
-          if [ ! -d ".next" ]; then
-            echo "::error::Build failed - .next directory not found"
+          if [ ! -d "out" ]; then
+            echo "::error::Build failed - out directory not found"
             exit 1
           fi
-          echo "Build output verified: .next directory exists"
+          echo "Build output verified: out directory exists"
 
       - name: Prepare deployment archive
         run: |
@@ -219,18 +202,17 @@ jobs:
           rm -rf node_modules
           rm -f "$ARCHIVE_PATH" deploy.tar.gz
 
-          # Create archive with source files and build output
-          # Note: .next/cache is excluded but .next/standalone and .next/static are included
+          # Create archive with only the static export output directory
+          # Static export creates an 'out' directory with all static files
           tar czf "$ARCHIVE_PATH" \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='deploy.tar.gz' \
             --exclude='deploy.tar.gz.*' \
-            --exclude='.next/cache' \
-            .
+            out/
 
           mv "$ARCHIVE_PATH" ./deploy.tar.gz
-          echo "Deployment archive created successfully"
+          echo "Deployment archive created successfully (static export)"
 
       - name: Install sshpass
         run: |
@@ -288,7 +270,6 @@ jobs:
             ARCHIVE_NAME="deploy.tar.gz"
             ARCHIVE_PATH="$ARCHIVE_DIR/$ARCHIVE_NAME"
             APP_DIR="$HOME/apps/hadirahjou.ir"
-            APP_NAME="hadirahjou-ir"
 
             mkdir -p "$ARCHIVE_DIR"
 
@@ -298,71 +279,15 @@ jobs:
               SUDO=""
             fi
 
-            export DEBIAN_FRONTEND=noninteractive
-            export APT_LISTCHANGES_FRONTEND=none
-
-            UPDATED=0
-            apt_update_once() {
-              if [ "$UPDATED" -eq 0 ]; then
-                $SUDO apt-get update -o Dpkg::Use-Pty=0
-                UPDATED=1
-              fi
-            }
-
-            apt_install() {
-              apt_update_once
-              $SUDO apt-get install -y -o Dpkg::Use-Pty=0 "$@"
-            }
-
-            if ! command -v curl >/dev/null 2>&1; then
-              apt_install curl
-            fi
-
-            if ! command -v node >/dev/null 2>&1; then
-              apt_install ca-certificates gnupg
-              curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO bash -
-              apt_install nodejs
-            fi
-
-            if ! command -v setcap >/dev/null 2>&1; then
-              apt_install libcap2-bin
-            fi
-
-            if ! command -v pm2 >/dev/null 2>&1; then
-              $SUDO npm install -g pm2
-            fi
-
-            if command -v pm2 >/dev/null 2>&1 && pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-              pm2 stop "$APP_NAME"
-              pm2 delete "$APP_NAME"
-            fi
-
+            # Remove old deployment
             rm -rf "$APP_DIR"
             mkdir -p "$APP_DIR"
-            tar -xzf "$ARCHIVE_PATH" -C "$APP_DIR" --strip-components=1
+            
+            # Extract static files (out directory) to app directory
+            tar -xzf "$ARCHIVE_PATH" -C "$APP_DIR"
             rm -f "$ARCHIVE_PATH"
 
-            cd "$APP_DIR"
-            
-            # Install only production dependencies (build is already done in GitHub Actions)
-            npm ci --omit=dev
-
-            if [ -n "$SUDO" ]; then
-              NODE_BIN="$(command -v node || true)"
-              if [ -n "$NODE_BIN" ]; then
-                $SUDO setcap 'cap_net_bind_service=+ep' "$NODE_BIN" || true
-              fi
-            fi
-
-            APP_PORT=3001
-
-            pm2 start npm --name "$APP_NAME" -- run start -- --hostname 0.0.0.0 --port "$APP_PORT"
-            if [ -n "$SUDO" ]; then
-              $SUDO pm2 startup systemd -u "$(whoami)" --hp "$HOME" || true
-            fi
-            pm2 save
-
-
+            # Reload nginx to serve the new static files
             if command -v nginx >/dev/null 2>&1; then
               if command -v systemctl >/dev/null 2>&1; then
                 $SUDO systemctl reload nginx || $SUDO systemctl restart nginx || true
