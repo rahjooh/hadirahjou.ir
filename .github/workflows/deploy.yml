@@ -320,54 +320,41 @@ jobs:
             
             echo "Creating/updating nginx config with path: $ABS_OUT_DIR"
             
-            # Create nginx config with absolute path
+            # Create nginx config using the same pattern as ssh-test step
             $SUDO tee "$SITE_CONF" >/dev/null <<EOF
-server {
-    listen 80;
-    listen [::]:80;
-    server_name hadirahjou.ir www.hadirahjou.ir;
-
-    # Redirect HTTP to HTTPS
-    return 301 https://\$host\$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name hadirahjou.ir www.hadirahjou.ir;
-
-    ssl_certificate /etc/letsencrypt/live/hadirahjou.ir/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/hadirahjou.ir/privkey.pem;
-
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES128-GCM-SHA256';
-    ssl_prefer_server_ciphers off;
-
-    # Root directory for static files
-    root $ABS_OUT_DIR;
-    index index.html;
-
-    # Gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_types text/css application/javascript application/json
-               text/plain text/xml text/javascript
-               application/x-javascript application/xml+rss;
-
-    # Cache static assets
-    location /_next/static {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        access_log off;
-    }
-
-    # Serve HTML files
-    location / {
-        try_files \$uri \$uri.html \$uri/ =404;
-    }
-}
-EOF
+            server {
+                listen 80;
+                listen [::]:80;
+                server_name hadirahjou.ir www.hadirahjou.ir;
+                return 301 https://\$host\$request_uri;
+            }
+            server {
+                listen 443 ssl http2;
+                listen [::]:443 ssl http2;
+                server_name hadirahjou.ir www.hadirahjou.ir;
+                ssl_certificate /etc/letsencrypt/live/hadirahjou.ir/fullchain.pem;
+                ssl_certificate_key /etc/letsencrypt/live/hadirahjou.ir/privkey.pem;
+                ssl_protocols TLSv1.2 TLSv1.3;
+                ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES128-GCM-SHA256';
+                ssl_prefer_server_ciphers off;
+                root $ABS_OUT_DIR;
+                index index.html;
+                gzip on;
+                gzip_vary on;
+                gzip_min_length 1024;
+                gzip_types text/css application/javascript application/json
+                           text/plain text/xml text/javascript
+                           application/x-javascript application/xml+rss;
+                location /_next/static {
+                    expires 1y;
+                    add_header Cache-Control "public, immutable";
+                    access_log off;
+                }
+                location / {
+                    try_files \$uri \$uri.html \$uri/ =404;
+                }
+            }
+            EOF
 
             # Enable the site
             $SUDO ln -sf "$SITE_CONF" "$SITE_LINK"
