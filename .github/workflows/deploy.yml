@@ -310,22 +310,128 @@ jobs:
             echo "Checking for index.html:"
             ls -la "$APP_DIR/out/index.html" || echo "WARNING: index.html not found!"
             
-            # Update nginx config with the correct absolute path
+            # Get absolute paths
+            ABS_APP_DIR="$(cd "$APP_DIR" && pwd)"
+            ABS_OUT_DIR="$ABS_APP_DIR/out"
+            
+            # Rewrite nginx config with the correct absolute path
             SITE_CONF="/etc/nginx/sites-available/hadirahjou-ir"
-            if [ -f "$SITE_CONF" ]; then
-              # Get absolute path
-              ABS_APP_DIR="$(cd "$APP_DIR" && pwd)"
-              # Update the root path in nginx config
-              $SUDO sed -i "s|root .*;|root $ABS_APP_DIR/out;|" "$SITE_CONF"
-              echo "Updated nginx config with path: $ABS_APP_DIR/out"
-              $SUDO nginx -t || echo "WARNING: nginx config test failed"
+            SITE_LINK="/etc/nginx/sites-enabled/hadirahjou-ir"
+            
+            echo "Creating/updating nginx config with path: $ABS_OUT_DIR"
+            
+            # Create nginx config with absolute path
+            $SUDO tee "$SITE_CONF" >/dev/null <<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name hadirahjou.ir www.hadirahjou.ir;
+
+    # Redirect HTTP to HTTPS
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name hadirahjou.ir www.hadirahjou.ir;
+
+    ssl_certificate /etc/letsencrypt/live/hadirahjou.ir/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/hadirahjou.ir/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES128-GCM-SHA256';
+    ssl_prefer_server_ciphers off;
+
+    # Root directory for static files
+    root $ABS_OUT_DIR;
+    index index.html;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript application/json
+               text/plain text/xml text/javascript
+               application/x-javascript application/xml+rss;
+
+    # Cache static assets
+    location /_next/static {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+    # Serve HTML files
+    location / {
+        try_files \$uri \$uri.html \$uri/ =404;
+    }
+}
+EOF
+
+            # Enable the site
+            $SUDO ln -sf "$SITE_CONF" "$SITE_LINK"
+            
+            echo "Nginx config created/updated. Root path: $ABS_OUT_DIR"
+            
+            # Test nginx config
+            if $SUDO nginx -t; then
+              echo "✓ Nginx config test passed"
+            else
+              echo "ERROR: nginx config test failed!"
+              $SUDO nginx -t
+              exit 1
             fi
+
+            # Verify nginx can access the files
+            if [ -f "$ABS_OUT_DIR/index.html" ]; then
+              echo "✓ index.html exists at $ABS_OUT_DIR/index.html"
+              # Check if nginx user can read it
+              if $SUDO test -r "$ABS_OUT_DIR/index.html"; then
+                echo "✓ nginx can read index.html"
+              else
+                echo "WARNING: nginx might not be able to read the files"
+                # Try to fix permissions - make files world-readable
+                $SUDO chmod -R 755 "$ABS_OUT_DIR"
+                $SUDO find "$ABS_OUT_DIR" -type f -exec chmod 644 {} \;
+                echo "Fixed permissions on $ABS_OUT_DIR"
+              fi
+            fi
+            
+            # Test if we can read the file as the nginx user
+            NGINX_USER="www-data"
+            if id "$NGINX_USER" &>/dev/null; then
+              if $SUDO -u "$NGINX_USER" test -r "$ABS_OUT_DIR/index.html"; then
+                echo "✓ Confirmed: $NGINX_USER can read index.html"
+              else
+                echo "WARNING: $NGINX_USER cannot read index.html, fixing permissions..."
+                $SUDO chmod -R o+r "$ABS_OUT_DIR"
+                $SUDO find "$ABS_OUT_DIR" -type d -exec chmod o+x {} \;
+              fi
+            fi
+            
+            # Verify nginx config is enabled
+            SITE_LINK="/etc/nginx/sites-enabled/hadirahjou-ir"
+            if [ ! -L "$SITE_LINK" ] || [ ! -f "$SITE_LINK" ]; then
+              echo "WARNING: nginx config not enabled, creating symlink..."
+              $SUDO ln -sf "$SITE_CONF" "$SITE_LINK"
+            fi
+            
+            # Show final nginx config for debugging
+            echo "Final nginx server block for hadirahjou.ir:"
+            $SUDO sed -n '/server_name hadirahjou.ir/,/^[[:space:]]*}/p' "$SITE_CONF" || echo "Could not show nginx config"
+            
+            # List all enabled nginx sites
+            echo "Enabled nginx sites:"
+            $SUDO ls -la /etc/nginx/sites-enabled/ || true
 
             # Reload nginx to serve the new static files
             if command -v nginx >/dev/null 2>&1; then
               if command -v systemctl >/dev/null 2>&1; then
                 $SUDO systemctl reload nginx || $SUDO systemctl restart nginx || true
+                echo "Nginx reloaded/restarted"
               else
                 $SUDO nginx -s reload || $SUDO service nginx reload || true
+                echo "Nginx reloaded"
               fi
             fi
