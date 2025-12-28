@@ -301,8 +301,30 @@ jobs:
             fi
             
             # Set proper permissions for nginx to read the files
-            chmod -R 755 "$APP_DIR/out"
-            find "$APP_DIR/out" -type f -exec chmod 644 {} \;
+            # First, ensure parent directories are accessible
+            $SUDO chmod 755 "$HOME" 2>/dev/null || true
+            $SUDO chmod 755 "$HOME/apps" 2>/dev/null || true
+            $SUDO chmod 755 "$APP_DIR" 2>/dev/null || true
+            
+            # Set permissions on out directory and files
+            # Make directories readable and executable by all
+            $SUDO find "$APP_DIR/out" -type d -exec chmod 755 {} \;
+            # Make files readable by all
+            $SUDO find "$APP_DIR/out" -type f -exec chmod 644 {} \;
+            
+            # Also ensure www-data can access (change ownership or add to group)
+            NGINX_USER="www-data"
+            if id "$NGINX_USER" &>/dev/null; then
+              # Try to change ownership to www-data, or at least ensure group permissions
+              $SUDO chown -R "$NGINX_USER:$NGINX_USER" "$APP_DIR/out" 2>/dev/null || {
+                # If chown fails, ensure world-readable permissions
+                echo "Could not change ownership, ensuring world-readable permissions..."
+                $SUDO chmod -R a+rX "$APP_DIR/out"
+              }
+            else
+              # If www-data doesn't exist, just make world-readable
+              $SUDO chmod -R a+rX "$APP_DIR/out"
+            fi
             
             echo "Static files extracted successfully to $APP_DIR/out"
             echo "Contents of out directory:"
@@ -395,8 +417,20 @@ jobs:
                 echo "✓ Confirmed: $NGINX_USER can read index.html"
               else
                 echo "WARNING: $NGINX_USER cannot read index.html, fixing permissions..."
-                $SUDO chmod -R o+r "$ABS_OUT_DIR"
-                $SUDO find "$ABS_OUT_DIR" -type d -exec chmod o+x {} \;
+                # Ensure all parent directories are accessible
+                $SUDO chmod 755 "$HOME" 2>/dev/null || true
+                $SUDO chmod 755 "$HOME/apps" 2>/dev/null || true
+                $SUDO chmod 755 "$ABS_APP_DIR" 2>/dev/null || true
+                # Fix permissions on the out directory
+                $SUDO chown -R "$NGINX_USER:$NGINX_USER" "$ABS_OUT_DIR" 2>/dev/null || {
+                  $SUDO chmod -R a+rX "$ABS_OUT_DIR"
+                }
+                # Verify it works now
+                if $SUDO -u "$NGINX_USER" test -r "$ABS_OUT_DIR/index.html"; then
+                  echo "✓ Permissions fixed: $NGINX_USER can now read index.html"
+                else
+                  echo "✗ ERROR: Still cannot read after fixing permissions!"
+                fi
               fi
             fi
             
