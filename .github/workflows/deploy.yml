@@ -320,7 +320,7 @@ jobs:
             
             echo "Creating/updating nginx config with path: $ABS_OUT_DIR"
             
-            # Create nginx config using the same pattern as ssh-test step
+            # Create nginx config - write with indentation then remove leading whitespace
             $SUDO tee "$SITE_CONF" >/dev/null <<EOF
             server {
                 listen 80;
@@ -355,6 +355,9 @@ jobs:
                 }
             }
             EOF
+            
+            # Remove leading whitespace from nginx config (12 spaces from heredoc indentation)
+            $SUDO sed -i 's/^            //' "$SITE_CONF"
 
             # Enable the site
             $SUDO ln -sf "$SITE_CONF" "$SITE_LINK"
